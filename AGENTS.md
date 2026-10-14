@@ -24,7 +24,7 @@ Nếu một yêu cầu mâu thuẫn với các file này: **dừng lại và h�
 1. **Tự cài thuật toán.** BFS, DFS/IDS, UCS, A\* phải tự viết bằng Python. Không dùng thư viện tìm kiếm có sẵn (networkx, simpleai, aima-python...) và không chép solver từ repo khác. Được dùng `collections.deque`, `heapq`, `dataclasses`.
 2. **Không sửa luật tuỳ tiện.** Luật chỉ nằm trong `bloxorz/core/`. Muốn đổi luật thì sửa `docs/GAME_RULES.md` trước và được nhóm đồng ý.
 3. **Không phá hợp đồng dữ liệu.** Không đổi tên trường JSON, tên action (`U D L R SWITCH`) hay chữ ký hàm public trong `docs/ARCHITECTURE.md` khi chưa báo cả nhóm.
-4. **Mọi solver** nhận `(level, state0)` và trả `SearchResult`, có đo bằng `bloxorz.search.common.measure`. Không tự đo theo cách khác.
+4. **Mọi solver** nhận `(level, state0)` và trả `SearchResult`, được chạy và đo qua `bloxorz.search.common.run_solver`. Không tự đo theo cách khác.
 5. **Code có test.** Thêm tính năng thì thêm test trong `tests/`. Chạy `pytest -q` trước khi đề xuất commit.
 6. **Trạng thái phải hashable** (`frozen dataclass`, `frozenset`) và chứa cấu hình cầu đang mở.
 7. **Python 3.10+**, chỉ dùng thư viện chuẩn cho phần lõi. `pytest` và `matplotlib` chỉ dùng cho test và biểu đồ.

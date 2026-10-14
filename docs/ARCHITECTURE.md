@@ -58,7 +58,7 @@ def bfs(level, start: State) -> SearchResult: ...
 # tương tự dfs (hoặc ids), ucs, astar(level, start, heuristic=...)
 ```
 
-`SearchResult(found, actions, cost, expanded, time_ms, peak_kb)`. Bọc bằng `measure()` để đo thống nhất. Đăng ký trong `bloxorz/search/__init__.py` ở dict `ALGORITHMS`.
+`SearchResult(found, actions, cost, expanded, time_ms, peak_kb)`. Chạy qua `run_solver()` để đo thống nhất (thời gian đo ở lần chạy không bật `tracemalloc`, bộ nhớ đo ở lần chạy thứ hai). Đăng ký trong `bloxorz/search/__init__.py` ở dict `ALGORITHMS`.
 
 **Quy ước đếm `expanded`:** tăng 1 mỗi khi một node được **lấy ra khỏi frontier và sinh con** (không tính node bị bỏ vì đã thăm).
 
