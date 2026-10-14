@@ -76,3 +76,11 @@ def bfs(level, start: State) -> SearchResult: ...
 | lỗi | `{"ok":false,"error":"..."}` |
 
 Khi nhận `result`, Godot gửi lần lượt từng `move` để vừa có hoạt ảnh vừa kiểm chứng.
+
+GUI đang dùng giao thức này như sau (đã cài trong `gui/scripts/net_client.gd`):
+
+- Server chạy ở **thư mục gốc repo**; `path` trong `load` là đường dẫn tương đối như `levels/level04.json`.
+- Mỗi lần mở màn, chơi lại, hoặc **sau khi khối rơi**, GUI gửi lại `load` (không dùng `restart`).
+- `move` hợp lệ: trả `state` mới. Khối rơi: trả `"state": null` và có `"fall"` trong `events`.
+- GUI không gửi `move` đè lên cube kia và không gửi `SWITCH` khi chưa tách.
+- `solve` giải từ **trạng thái đầu** của màn đang load; trả `result` đúng định dạng file kết quả.

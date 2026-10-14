@@ -4,6 +4,9 @@ extends Node3D
 
 const TILE_H := 0.34
 
+## "ring" (glowing ring + light) | "plain" (just the hole) — set before build().
+static var goal_style: String = "ring"
+
 var bridge_nodes: Dictionary = {}   # bridge id -> Array[Node3D]
 
 var _tile_mesh: ArrayMesh = MeshUtil.rounded_box(Vector3(0.96, TILE_H, 0.96), 0.07)
@@ -72,6 +75,8 @@ func _add_goal(cell: Vector2i) -> void:
 	hole.material_override = _hole
 	hole.position.y = -TILE_H / 2
 	root.add_child(hole)
+	if goal_style == "plain":
+		return
 	var ring := MeshInstance3D.new()
 	var torus := TorusMesh.new()
 	torus.inner_radius = 0.40
@@ -134,18 +139,29 @@ func _add_split_switch(node: Node3D) -> void:
 		node.add_child(s)
 
 
-## Show open bridges, hide closed ones (with a short slide when animated).
+## Show open bridges, hide closed ones. Animated: closed tiles flip down and
+## sink away; opening tiles swing back up one after another.
 func set_bridges(open: Dictionary, animate: bool = true) -> void:
 	for bid in bridge_nodes:
 		var is_open := open.has(bid)
-		for node: Node3D in bridge_nodes[bid]:
-			var target := Vector3.ONE if is_open else Vector3(0.05, 1, 0.05)
-			if not animate:
-				node.scale = target
+		var nodes: Array = bridge_nodes[bid]
+		for i in nodes.size():
+			var node: Node3D = nodes[i]
+			var was_open := node.visible
+			if not animate or was_open == is_open:
 				node.visible = is_open
+				node.position.y = 0.0
+				node.rotation.x = 0.0
 				continue
-			node.visible = true
 			var tw: Tween = node.create_tween()
-			tw.tween_property(node, "scale", target, 0.25).set_trans(Tween.TRANS_BACK)
-			if not is_open:
+			tw.tween_interval(i * 0.07)
+			if is_open:
+				node.visible = true
+				node.position.y = -1.4
+				node.rotation.x = -PI / 2
+				tw.tween_property(node, "position:y", 0.0, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+				tw.parallel().tween_property(node, "rotation:x", 0.0, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			else:
+				tw.tween_property(node, "rotation:x", PI / 2, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+				tw.parallel().tween_property(node, "position:y", -1.4, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 				tw.tween_callback(func() -> void: node.visible = false)

@@ -12,6 +12,7 @@ GOLDEN = {
     "level01.json": ["R", "D", "D", "R", "R", "D", "R"],
     "level02.json": ["R", "U", "L", "D", "R", "R", "R", "R", "R", "R", "R", "R", "R", "U", "L", "D", "R"],
     "level03.json": ["R", "U", "R", "D", "L", "U", "L", "D", "R", "R", "R", "R", "R"],
+    "level04.json": ["R", "R", "D", "R", "R", "L", "D"],
 }
 
 

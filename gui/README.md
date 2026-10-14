@@ -11,38 +11,49 @@ Chỉ người làm GUI và người quay video cần Godot; người làm thu�
 tools\godot\Godot_v4.7.2-stable_win64.exe --path gui
 ```
 
-Hoặc mở Godot, Import → chọn `gui/project.godot` → F5. Phím: mũi tên/WASD lăn, Q/E xoay camera, R chơi lại.
+Hoặc mở Godot, Import → chọn `gui/project.godot` → F5.
 
-Kiểm tra tự động (chụp ảnh sau khi đi các nước):
+| Điều khiển | Phím / chuột |
+| --- | --- |
+| Lăn khối | mũi tên / WASD |
+| Đổi khối khi đã tách | Tab / Space |
+| Xoay góc nhìn | giữ chuột (trái/phải/giữa) và kéo |
+| Zoom | con lăn chuột |
+| Xoay 90° / về góc mặc định | Q, E / Home |
+| Chơi lại | R |
+
+Kiểm tra tự động (chụp ảnh rồi thoát), tham số sau `--`:
 
 ```powershell
-tools\godot\Godot_v4.7.2-stable_win64_console.exe --path gui -- --level=0 --moves=RDDRRDR --screenshot=shot.png
+tools\godot\Godot_v4.7.2-stable_win64_console.exe --path gui -- --level=3 --solve=astar --screenshot=shot.png
 ```
 
-## Trạng thái hiện tại: offline mode
+`--level=N` (0-based), `--moves=RRDT` (`T` = đổi khối), `--solve=bfs|dfs|ucs|astar`, `--shot-at=GIÂY` (chụp giữa nước cuối), `--yaw/--pitch/--zoom`, `--select`.
 
-Server Python chưa có nên GUI tạm dùng `scripts/offline_rules.gd` (bản sao luật cơ bản, **không** có split). Nút Solve phát lại file `results/sample/levelXX_<algo>.json` nếu có. Khi `bloxorz/server.py` xong sẽ chuyển sang TCP và bỏ offline rules.
+## Hai chế độ
+
+- **Online** (góc HUD hiện `● Python server`): khi `python -m bloxorz.server` đang chạy ở **thư mục gốc repo**, cổng 5555. Mọi nước đi và Solve đều hỏi Python.
+- **Offline** (`○ Offline`): không có server. GUI dùng `scripts/offline_rules.gd` (bản sao tạm của luật, có cả tách/nhập khối) và nút Solve phát lại `results/sample/levelXX_<algo>.json`. Sẽ bỏ khi server ổn định.
+
+Đã thử vòng online bằng một server giả: load → solve A\* → phát lại 7 nước có tách, đổi khối, nhập lại, thắng.
 
 | File | Vai trò |
 | --- | --- |
-| `scripts/main.gd` | dựng môi trường, camera, luồng game, input, chế độ tự động |
-| `scripts/board.gd` | dựng ô 3D từ JSON, hoạt ảnh cầu |
-| `scripts/block.gd` | khối, hoạt ảnh lăn/rơi/chìm |
-| `scripts/game_ui.gd` | HUD |
+| `scripts/main.gd` | môi trường, camera (kéo chuột/zoom), luồng game, online/offline, tham số tự động |
+| `scripts/board.gd` | dựng ô 3D từ JSON, hoạt ảnh cầu lật lên/xuống |
+| `scripts/block.gd` | khối: lăn, rơi lộn nhào qua mép, tách thành 2 khối nhỏ, chìm vào đích |
+| `scripts/block_skin.gd` | ngoại hình voxel "khỉ lửa": nắp hoa văn lửa, mặt pixel, đế trắng (vẽ bằng lưới ký tự) |
+| `scripts/game_ui.gd` | HUD và màn hình chọn màn |
+| `scripts/net_client.gd` | TCP client theo `docs/ARCHITECTURE.md` mục 3 |
 | `scripts/level_data.gd` | đọc JSON màn chơi |
 | `scripts/offline_rules.gd` | luật tạm (sẽ bỏ) |
 | `scripts/mesh_util.gd` | mesh bo góc, vật liệu |
-
-- Phong cách đã chốt: mức "7/10" — ô bo góc, bóng đổ mềm, màu riêng từng loại ô, glow nhẹ cho switch/goal, khối lăn qua cạnh, bảng nút kính mờ.
-- Tạo project Godot 4 tại thư mục này (`gui/project.godot`). Không commit `gui/.godot/`.
-- Godot chỉ **vẽ**: mọi luật lấy từ Python qua TCP (`docs/ARCHITECTURE.md` mục 3).
-- Khi server chưa xong: đọc trực tiếp `levels/*.json` để dựng bàn, và `results/sample/*.json` để thử hoạt ảnh Solve.
 
 ## Việc cần làm
 
 - [x] Dựng bàn từ JSON (floor, void, fragile, bridge mở/đóng, 3 loại switch, goal)
 - [x] Khối 1×1×2 và hoạt ảnh lăn quanh cạnh (`Tween`)
 - [x] Camera tự vừa màn; phím xoay camera
-- [~] Nút New Game, Restart, chọn màn, Solve BFS/DFS/UCS/A\*; bảng số liệu
-- [ ] Kết nối TCP (`StreamPeerTCP`), phát lại lời giải từng bước
-- [ ] Hiệu ứng rơi, cầu trượt, tách/nhập khối
+- [x] Nút New Game, Restart, chọn màn, Solve BFS/DFS/UCS/A\*; bảng số liệu
+- [x] Kết nối TCP (`StreamPeerTCP`), phát lại lời giải từng bước
+- [x] Hiệu ứng rơi, cầu trượt, tách/nhập khối
