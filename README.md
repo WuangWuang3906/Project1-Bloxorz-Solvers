@@ -23,7 +23,7 @@ pytest -q
 python -m bloxorz show levels/level01.json
 ```
 
-Đọc tiếp: [AGENTS.md](AGENTS.md) (quy định chung, cả cho AI) → [docs/TESTING.md](docs/TESTING.md) → [CONTRIBUTING.md](CONTRIBUTING.md).
+**Thành viên mới: đọc [docs/ONBOARDING.md](docs/ONBOARDING.md) trước.** Đọc tiếp: [AGENTS.md](AGENTS.md) (quy định chung, cả cho AI) → [docs/TESTING.md](docs/TESTING.md) → [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Chạy
 

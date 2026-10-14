@@ -328,7 +328,7 @@ func _animate(prev: Dictionary, next: Variant, action: String) -> bool:
 	if next == null:
 		await block.tumble(block.cubes[a], [target], _support_flags([target], false, prev["open"]), action)
 		return false
-	block.set_state(next)
+	block.set_state(next, true)
 	return true
 
 

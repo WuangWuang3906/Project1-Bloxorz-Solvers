@@ -16,6 +16,7 @@
 4. [docs/TESTING.md](docs/TESTING.md): cách test khi chưa có GUI.
 5. [CONTRIBUTING.md](CONTRIBUTING.md): quy trình nhánh, commit, review.
 6. [docs/PLAN.md](docs/PLAN.md): vai trò và mốc thời gian.
+7. [docs/ONBOARDING.md](docs/ONBOARDING.md): việc cụ thể, test phải pass và hạn của từng vai.
 
 Nếu một yêu cầu mâu thuẫn với các file này: **dừng lại và hỏi người dùng**, không tự đổi luật.
 

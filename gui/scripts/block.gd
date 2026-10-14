@@ -57,7 +57,9 @@ static func cube_pose(c: Vector2i) -> Transform3D:
 	return Transform3D(Basis.IDENTITY, Vector3(c.y, 0.5, c.x))
 
 
-func set_state(s: Dictionary) -> void:
+## Show state `s`. Normally resets to the canonical pose; with keep_rotation the
+## cubes keep how they are currently turned (only their positions are set).
+func set_state(s: Dictionary, keep_rotation: bool = false) -> void:
 	orient = s["orient"]
 	pos = s["pos"]
 	var split := orient == "SPLIT"
@@ -70,7 +72,8 @@ func set_state(s: Dictionary) -> void:
 		cube_cells = s["cubes"].duplicate()
 		active = s["active"]
 		for i in 2:
-			cubes[i].transform = cube_pose(cube_cells[i])
+			var basis: Basis = _snap(cubes[i].basis) if keep_rotation else Basis.IDENTITY
+			cubes[i].transform = Transform3D(basis, cube_pose(cube_cells[i]).origin)
 		_place_marker()
 	else:
 		body.transform = pose(pos, orient)
@@ -122,7 +125,9 @@ func roll_to(dir: String, new_pos: Vector2i, new_orient: String) -> void:
 	await _rotate_about(body, _edge(OfflineRules.cells(pos, orient), dir), Vector3.UP.cross(v), PI / 2, ROLL_TIME)
 	pos = new_pos
 	orient = new_orient
-	body.transform = pose(pos, orient)
+	# Keep the real rotation (the face/cap must follow the roll); only snap
+	# floating-point drift and put the centre exactly on the cells.
+	body.transform = Transform3D(_snap(body.basis), pose(pos, orient).origin)
 
 
 ## Roll the active cube one cell.
@@ -132,7 +137,12 @@ func cube_roll(dir: String) -> void:
 	active_marker.visible = false
 	await _rotate_about(cubes[active], _edge([c], dir), Vector3.UP.cross(v), PI / 2, ROLL_TIME * 0.8)
 	cube_cells[active] = c + OfflineRules.DIRS[dir]
-	cubes[active].transform = cube_pose(cube_cells[active])
+	cubes[active].transform = Transform3D(_snap(cubes[active].basis), cube_pose(cube_cells[active]).origin)
+
+
+## Round a rotation made of 90° turns back to exact -1/0/1 entries.
+static func _snap(b: Basis) -> Basis:
+	return Basis(b.x.round(), b.y.round(), b.z.round())
 
 
 ## The block just landed on `cs` and some cells are unsupported: tip over the
