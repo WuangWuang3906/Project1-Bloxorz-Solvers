@@ -1,0 +1,1 @@
+Read and follow `AGENTS.md` at the repository root before answering. It links the game rules, JSON format, architecture and testing docs in `docs/`. Search algorithms (BFS, DFS/IDS, UCS, A*) must be implemented by hand in Python, without search libraries.

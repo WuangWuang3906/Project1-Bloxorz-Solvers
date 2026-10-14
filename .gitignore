@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Godot
+gui/.godot/
+gui/export/
+*.import.tmp
+
+# Results (keep hand-written samples)
+results/*
+!results/sample/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

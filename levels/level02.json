@@ -1,0 +1,20 @@
+{
+  "id": 2,
+  "name": "Thin ice",
+  "group": "fragile",
+  "source": "Nhom tu thiet ke",
+  "grid": [
+    "####FFFF###-",
+    "#S##FFFF##G#",
+    "####FFFF####"
+  ],
+  "start": {
+    "pos": [
+      1,
+      1
+    ],
+    "orient": "STAND"
+  },
+  "bridges": [],
+  "switches": []
+}

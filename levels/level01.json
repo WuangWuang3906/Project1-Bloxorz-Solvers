@@ -1,0 +1,17 @@
+{
+  "id": 1,
+  "name": "First steps",
+  "group": "basic",
+  "source": "Bloxorz (Coolmath Games) level 1 - chuyen the",
+  "grid": [
+    "###-------",
+    "#S####----",
+    "#########-",
+    "-#########",
+    "-----##G##",
+    "------###-"
+  ],
+  "start": { "pos": [1, 1], "orient": "STAND" },
+  "bridges": [],
+  "switches": []
+}

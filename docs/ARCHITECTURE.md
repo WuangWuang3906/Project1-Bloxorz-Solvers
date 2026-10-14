@@ -1,0 +1,78 @@
+# Kiến trúc và API
+
+## 1. Cây thư mục
+
+```text
+bloxorz/                  # Python package (luật + solver)
+  __main__.py             # python -m bloxorz ...
+  cli.py                  # show / play / solve / verify
+  core/
+    level.py              # Level, Bridge, Switch, load_level()        [đã có]
+    state.py              # State                                        [đã có]
+    rules.py              # roll(), step(), successors(), is_goal()...   [TODO core]
+    render.py             # render_text(): vẽ bàn cờ bằng chữ           [đã có]
+  search/
+    common.py             # SearchResult, measure(), reconstruct()      [đã có]
+    bfs.py dfs.py         # [TODO BFS/DFS]
+    ucs.py astar.py heuristics.py   # [TODO UCS/A*]
+  server.py               # TCP server cho Godot                        [TODO tích hợp]
+benchmark/run_benchmark.py  # chạy mọi màn × mọi thuật toán, xuất CSV   [TODO tích hợp]
+levels/                   # levelXX.json
+results/sample/           # kết quả giả cho GUI test
+tests/                    # pytest
+gui/                      # project Godot 4
+docs/
+```
+
+## 2. API Python (hợp đồng — không đổi khi chưa báo nhóm)
+
+### `bloxorz.core.state.State` (frozen, hashable)
+
+| Trường | Khối nguyên | Đã tách |
+| --- | --- | --- |
+| `pos` | ô neo `(r, c)` | ô cube 0 |
+| `orient` | `"STAND"`, `"H"`, `"V"` | `"SPLIT"` |
+| `cubes` | `None` | `((r0,c0), (r1,c1))` |
+| `active` | `0` | `0` hoặc `1` |
+| `open_bridges` | `frozenset[str]` | `frozenset[str]` |
+
+### `bloxorz.core.rules`
+
+```python
+roll(pos, orient, direction) -> tuple[pos, orient]     # chỉ bảng lăn, không xét bàn cờ
+occupied_cells(state) -> list[tuple[int, int]]
+initial_state(level) -> State
+step(level, state, action) -> StepResult               # StepResult(state | None, cost, events)
+successors(level, state) -> Iterator[tuple[str, State, float]]   # chỉ nước hợp lệ
+is_goal(level, state) -> bool
+apply_actions(level, actions) -> list[State]           # ném IllegalMove nếu sai
+verify(level, actions) -> bool                         # hợp lệ và kết thúc ở goal
+```
+
+`events` là danh sách chuỗi để GUI làm hoạt ảnh: `"fall"`, `"win"`, `"bridge:b1:open"`, `"bridge:b1:close"`, `"split"`, `"merge"`, `"fragile_break"`.
+
+### `bloxorz.search`
+
+```python
+def bfs(level, start: State) -> SearchResult: ...
+# tương tự dfs (hoặc ids), ucs, astar(level, start, heuristic=...)
+```
+
+`SearchResult(found, actions, cost, expanded, time_ms, peak_kb)`. Bọc bằng `measure()` để đo thống nhất. Đăng ký trong `bloxorz/search/__init__.py` ở dict `ALGORITHMS`.
+
+**Quy ước đếm `expanded`:** tăng 1 mỗi khi một node được **lấy ra khỏi frontier và sinh con** (không tính node bị bỏ vì đã thăm).
+
+## 3. Giao thức TCP (Godot ↔ Python)
+
+- `python -m bloxorz.server --port 5555`, chỉ nghe `127.0.0.1`.
+- Mỗi message là **một dòng JSON** kết thúc bằng `\n`.
+
+| Godot gửi | Python trả |
+| --- | --- |
+| `{"cmd":"load","path":"levels/level01.json"}` | `{"ok":true,"level":{...},"state":{...}}` |
+| `{"cmd":"move","action":"R"}` (cả `SWITCH`) | `{"ok":true,"state":{...},"events":["bridge:b1:open"]}` hoặc `{"ok":true,"state":null,"events":["fall"]}` |
+| `{"cmd":"restart"}` | `{"ok":true,"state":{...}}` |
+| `{"cmd":"solve","algo":"astar"}` | `{"ok":true,"result":{...}}` (dạng file kết quả trong JSON_FORMAT) |
+| lỗi | `{"ok":false,"error":"..."}` |
+
+Khi nhận `result`, Godot gửi lần lượt từng `move` để vừa có hoạt ảnh vừa kiểm chứng.
