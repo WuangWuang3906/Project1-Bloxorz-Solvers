@@ -35,7 +35,7 @@ python -m bloxorz show levels/level01.json
 | Kiểm chứng lời giải | `python -m bloxorz verify levels/level01.json results/x.json` |
 | Server cho GUI | `python -m bloxorz.server --port 5555` |
 | Benchmark | `python benchmark/run_benchmark.py` |
-| GUI | Mở `gui/project.godot` bằng Godot 4 |
+| GUI | Mở `gui/project.godot` bằng **Godot 4.7.2** (xem [gui/README.md](gui/README.md)) |
 
 ## Tham khảo
 

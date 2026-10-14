@@ -1,5 +1,9 @@
 # GUI — Godot 4 (Trưởng nhóm)
 
+**Phiên bản bắt buộc: Godot 4.7.2-stable, bản Standard (không phải .NET).** Cả nhóm dùng đúng bản này để file project không bị nâng cấp lệch.
+Tải: https://github.com/godotengine/godot/releases/tag/4.7.2-stable → `Godot_v4.7.2-stable_win64.exe.zip`. Giải nén là chạy, không cần cài.
+Chỉ người làm GUI và người quay video cần Godot; người làm thuật toán chỉ cần Python.
+
 - Phong cách đã chốt: mức "7/10" — ô bo góc, bóng đổ mềm, màu riêng từng loại ô, glow nhẹ cho switch/goal, khối lăn qua cạnh, bảng nút kính mờ.
 - Tạo project Godot 4 tại thư mục này (`gui/project.godot`). Không commit `gui/.godot/`.
 - Godot chỉ **vẽ**: mọi luật lấy từ Python qua TCP (`docs/ARCHITECTURE.md` mục 3).
