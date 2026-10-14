@@ -8,6 +8,10 @@
 - Nhóm 5 người. Deadline **22:00 ngày 2026-11-01**; mục tiêu nội bộ nộp trước 12:00 cùng ngày.
 - Kiến trúc: **Python** chứa luật chơi (nguồn duy nhất) và 4 solver. **Godot 4** chỉ vẽ 3D và gọi Python qua TCP.
 
+## 0. Trạng thái hiện tại — đọc trước tiên
+
+**[docs/STATUS.md](docs/STATUS.md)** ghi việc đã xong, việc đang chờ, quyết định đã chốt và câu hỏi còn mở. Đọc nó **trước mọi việc khác** ở mỗi phiên, và cập nhật nó khi xong một mốc. Đừng dựa vào trí nhớ của cuộc trò chuyện trước.
+
 ## 2. Tài liệu phải đọc (theo thứ tự)
 
 1. [docs/GAME_RULES.md](docs/GAME_RULES.md): luật đã chốt, chi phí, tham số tối ưu.
@@ -17,6 +21,7 @@
 5. [CONTRIBUTING.md](CONTRIBUTING.md): quy trình nhánh, commit, review.
 6. [docs/PLAN.md](docs/PLAN.md): vai trò và mốc thời gian.
 7. [docs/ONBOARDING.md](docs/ONBOARDING.md): việc cụ thể, test phải pass và hạn của từng vai.
+8. [docs/STATUS.md](docs/STATUS.md): tiến độ (xem mục 0).
 
 Nếu một yêu cầu mâu thuẫn với các file này: **dừng lại và hỏi người dùng**, không tự đổi luật.
 
