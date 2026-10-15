@@ -1,6 +1,6 @@
 # Nhận việc — đọc trong 10 phút
 
-> Trưởng nhóm đã xong GUI 3D và bộ unit test. Việc còn lại là **phần Python**: luật chơi, 4 thuật toán, server và thí nghiệm. File này nói mỗi người làm gì, làm theo thứ tự nào, và thế nào là xong.
+> Trưởng nhóm đã xong GUI 3D, unit test và luật chơi. Mỗi bạn còn lại viết **một thuật toán**: BFS, DFS, UCS hoặc A\*. File này nói mỗi người làm gì và thế nào là xong.
 
 ## 1. Bức tranh chung
 
@@ -29,68 +29,58 @@ cd Project1-Bloxorz-Solvers
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-pytest -q                                   # lúc đầu: 4 pass, phần còn lại fail
+pytest -q                                   # phần luật đã pass; test thuật toán fail cho tới khi bạn viết xong
 python -m bloxorz show levels/level03.json
-git checkout -b feat/<vai>-<việc>           # ví dụ feat/core-roll
+git checkout -b feat/<thuật-toán>           # ví dụ feat/bfs
 ```
 
 Rồi đọc theo thứ tự: `AGENTS.md` → `docs/GAME_RULES.md` → `docs/ARCHITECTURE.md` → mục của mình bên dưới. Nếu dùng AI, cho nó đọc `AGENTS.md` trước (Claude/Copilot/Cursor tự đọc).
 
 **Test fail không phải lỗi của bạn** — đó là danh sách việc. Mỗi người làm cho các test thuộc phần mình chuyển sang pass.
 
-## 3. Việc của từng vai
+## 3. Việc của từng người
 
-### A — Luật chơi (`bloxorz/core/rules.py`) · làm TRƯỚC, mọi người phụ thuộc
+**Trưởng nhóm** đã làm xong: GUI 3D, unit test và **luật chơi** (`bloxorz/core/rules.py`, 66 test luật đều pass). Trưởng nhóm làm tiếp server, màn chơi và đo đạc. **4 bạn còn lại mỗi người một thuật toán**, mỗi người một file:
 
-| Bước | Việc | Test phải pass | Hạn |
+| Người | Thuật toán | File | Biết là xong khi |
 | --- | --- | --- | --- |
-| A1 | `roll()` — bảng lăn 12 ô | `tests/test_roll.py` | **16/10** |
-| A2 | `occupied_cells`, `initial_state`, `step`, `successors`, `is_goal` cho floor/void/goal/fragile | nhóm test "basic board" và "fragile" trong `tests/test_rules.py` | **17/10** |
-| A3 | Cầu + 3 loại switch (`toggle`/`open`/`close`), cost | nhóm "bridges and switches" trong `test_rules.py`, `test_golden.py` level01–03 | 19/10 |
-| A4 | Tách/nhập khối, `SWITCH` | `tests/test_split.py`, `test_golden.py` level04 | 23/10 |
+| 1 | **BFS** — thử hết đường 1 bước, rồi 2 bước… → luôn ra đường ít nước nhất | `bloxorz/search/bfs.py` | `pytest tests/test_solvers.py -k bfs` PASSED |
+| 2 | **DFS** (hoặc IDS) — đi một hướng tới cùng, bí thì quay lại | `bloxorz/search/dfs.py` | `pytest tests/test_solvers.py -k dfs` PASSED |
+| 3 | **UCS** — luôn mở rộng đường có tổng giá thấp nhất | `bloxorz/search/ucs.py` | `pytest tests/test_solvers.py -k "ucs and not astar"` PASSED |
+| 4 | **A\*** — như UCS nhưng có heuristic ước lượng còn bao xa | `bloxorz/search/astar.py`, `heuristics.py` | `-k astar` PASSED và `test_astar_matches_ucs_cost` PASSED |
 
-Cần hiểu để giải thích khi vấn đáp: vì sao state phải **hashable** (dùng làm khoá trong `visited`), vì sao cấu hình cầu nằm trong state, thứ tự xử lý một nước (`GAME_RULES.md` mục 3).
+Mỗi người cũng viết **phần báo cáo của thuật toán mình**: ý tưởng, có chắc tìm ra lời giải không (complete), có tối ưu không (optimal), tốn thời gian/bộ nhớ thế nào — **kèm điều kiện** để kết luận đúng.
 
-### B — BFS và DFS/IDS (`bloxorz/search/bfs.py`, `dfs.py`)
+Luật chơi đã có sẵn, nên ai cũng chạy thử được ngay:
 
-| Bước | Việc | Test phải pass | Hạn |
-| --- | --- | --- | --- |
-| B1 | BFS: `deque`, `visited`, `parent` → `reconstruct()` | `test_solvers.py` (bfs) | 21/10 |
-| B2 | DFS bằng **stack tường minh** (không đệ quy) + `visited`; hoặc IDS (ghi rõ trong báo cáo) | `test_solvers.py` (dfs) | 21/10 |
-| B3 | Viết phần báo cáo: mô tả, complete/optimal/time/space **kèm điều kiện** | — | 28/10 |
+```bash
+python -m bloxorz solve levels/level01.json --algo bfs --replay
+```
 
-Có thể viết ngay hôm nay dựa trên chữ ký `successors()` / `is_goal()` trong `ARCHITECTURE.md`; test sẽ chạy được khi A xong A2. Đếm `expanded` đúng quy ước trong `ARCHITECTURE.md`.
+### Gợi ý cho từng thuật toán
 
-### C — UCS, A\* và heuristic (`ucs.py`, `astar.py`, `heuristics.py`)
+- **BFS**: `collections.deque`; đánh dấu đã thăm khi **sinh ra** state; lưu `parent[state] = (state_trước, action)` rồi dùng `common.reconstruct()`.
+- **DFS**: dùng **stack tường minh** (list + `pop()`), không dùng đệ quy (Python giới hạn ~1000 tầng). Phải có `visited` để không đi vòng tròn (đề tr. 5). Nếu chọn IDS thì ghi rõ trong báo cáo.
+- **UCS**: `heapq` với `(g, counter, state)`; khi lấy ra một state đã chốt với g nhỏ hơn thì bỏ qua. Giá mỗi bước lấy từ `successors()` (lăn = 1, kết thúc nằm trên ô dễ vỡ = 2, `SWITCH` = 1).
+- **A\***: như UCS nhưng ưu tiên `g + h`. Heuristic **không được ước lượng quá** giá thật — vì mọi bước tốn ≥ 1, khoảng cách Manhattan tới đích chia 2 là an toàn. Cần xử lý cả lúc khối đã tách (màn 4). Báo cáo phải chứng minh admissible (và consistent nếu được).
 
-| Bước | Việc | Test phải pass | Hạn |
-| --- | --- | --- | --- |
-| C1 | UCS bằng `heapq` (g, counter, state); bỏ qua state đã chốt với g nhỏ hơn | `test_solvers.py` (ucs) | 21/10 |
-| C2 | A\* + heuristic cho khối nguyên (gợi ý: Manhattan/2, cộng thêm khi chưa đứng) | `test_astar_matches_ucs_cost` | 21/10 |
-| C3 | Heuristic khi đã tách (2 cube, teleport) vẫn **admissible** | cost A\* = UCS trên level04 | 25/10 |
-| C4 | Báo cáo: giải thích cost function, chứng minh admissible/consistent **theo cost đã chọn** | — | 28/10 |
+Đếm `expanded` theo quy ước trong `ARCHITECTURE.md`: +1 mỗi khi lấy một node ra khỏi frontier và sinh con.
 
-Cần hiểu: vì sao UCS với cost đều = 1 trùng BFS; vì sao heuristic phải ≤ cost thật nhỏ nhất (mọi action cost ≥ 1).
+### Trưởng nhóm làm tiếp
 
-### D — Server, màn chơi, thí nghiệm (`server.py`, `levels/`, `benchmark/`)
+| Việc | Biết là xong khi |
+| --- | --- |
+| `bloxorz/server.py` (cầu nối GUI ↔ Python) | GUI hiện `● Python server`, bấm Solve chạy |
+| Đủ 20 màn (5 cơ bản, 5 ô dễ vỡ, 5 công tắc/cầu, 5 tách khối) | mỗi màn có 1 lời giải trong `test_golden.py` |
+| `benchmark/run_benchmark.py` + bảng, biểu đồ | chạy hết 20 màn × 4 thuật toán |
+| Xuất `.exe`, video, ghép báo cáo | nộp trước 12:00 ngày 1/11 |
 
-| Bước | Việc | Xong khi | Hạn |
-| --- | --- | --- | --- |
-| D1 | `server.py` theo giao thức `ARCHITECTURE.md` mục 3 | GUI hiện `● Python server`, chơi tay + Solve chạy | 19/10 (sau A2) |
-| D2 | 20 màn JSON: 5 cơ bản, 5 fragile, 5 switch/bridge, 5 split/kết hợp; ghi `source` | mỗi màn có 1 lời giải thêm vào `test_golden.py` | 24/10 |
-| D3 | `benchmark/run_benchmark.py`: 20 màn × 4 thuật toán → CSV | chạy hết không treo | 26/10 |
-| D4 | Bảng + biểu đồ (matplotlib) cho báo cáo | — | 28/10 |
-
-Server chạy ở thư mục gốc repo, cổng 5555. Thử GUI: `python tools/get_godot.py` rồi `tools\godot\Godot_v4.7.2-stable_win64.exe --path gui`.
-
-## 4. Thứ tự phụ thuộc
+## 4. Thứ tự làm
 
 ```text
-16/10  A1 roll ─┐
-17/10  A2 luật cơ bản ──► B1, B2, C1, C2 chạy test được ──► D1 server
-19/10  A3 cầu + switch ──► test_golden level01–03
-23/10  A4 split ──► C3 heuristic split, D2 màn split
-26/10  D3 benchmark ──► 27–29/10 báo cáo ──► 30/10–1/11 video + nộp
+Luật chơi (xong) ──► 4 bạn viết BFS / DFS / UCS / A* song song, độc lập nhau
+                 ──► trưởng nhóm: server, 20 màn, benchmark
+4 thuật toán xong ──► chạy benchmark ──► cả nhóm viết báo cáo ──► video + nộp
 ```
 
 ## 5. Quy tắc nhỏ nhưng quan trọng

@@ -20,7 +20,7 @@
 4. [docs/TESTING.md](docs/TESTING.md): cách test khi chưa có GUI.
 5. [CONTRIBUTING.md](CONTRIBUTING.md): quy trình nhánh, commit, review.
 6. [docs/PLAN.md](docs/PLAN.md): vai trò và mốc thời gian.
-7. [docs/ONBOARDING.md](docs/ONBOARDING.md): việc cụ thể, test phải pass và hạn của từng vai.
+7. [docs/ONBOARDING.md](docs/ONBOARDING.md): việc cụ thể và test phải pass của từng vai.
 8. [docs/STATUS.md](docs/STATUS.md): tiến độ (xem mục 0).
 
 Nếu một yêu cầu mâu thuẫn với các file này: **dừng lại và hỏi người dùng**, không tự đổi luật.
@@ -42,11 +42,12 @@ Nếu một yêu cầu mâu thuẫn với các file này: **dừng lại và h�
 
 | Thư mục | Chủ | Ghi chú |
 | --- | --- | --- |
-| `bloxorz/core/` | Thành viên core luật | Người khác chỉ đọc |
-| `bloxorz/search/bfs.py`, `dfs.py` | Thành viên BFS/DFS | |
-| `bloxorz/search/ucs.py`, `astar.py`, `heuristics.py` | Thành viên UCS/A\* | |
-| `bloxorz/server.py`, `benchmark/`, `levels/` | Thành viên tích hợp + màn chơi | |
-| `gui/`, `tests/` | Trưởng nhóm (GUI 3D + unit test) | |
+| `bloxorz/core/` | Trưởng nhóm | Luật đã xong; người khác chỉ đọc |
+| `bloxorz/search/bfs.py` | Thành viên BFS | |
+| `bloxorz/search/dfs.py` | Thành viên DFS | |
+| `bloxorz/search/ucs.py` | Thành viên UCS | |
+| `bloxorz/search/astar.py`, `heuristics.py` | Thành viên A\* | |
+| `bloxorz/server.py`, `benchmark/`, `levels/`, `gui/`, `tests/` | Trưởng nhóm | |
 | `docs/` | Cả nhóm | Sửa luật phải báo |
 
 ## 5. Phong cách code
