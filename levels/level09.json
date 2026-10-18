@@ -1,0 +1,15 @@
+{
+  "id": 9,
+  "name": "Orange carpet",
+  "group": "fragile",
+  "source": "Nhom tu thiet ke",
+  "grid": [
+    "###-----------",
+    "#S#FFFFFFF####",
+    "###FFFFFFF#G##",
+    "----------####"
+  ],
+  "start": { "pos": [1, 1], "orient": "STAND" },
+  "bridges": [],
+  "switches": []
+}

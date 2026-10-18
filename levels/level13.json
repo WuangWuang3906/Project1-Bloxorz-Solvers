@@ -1,0 +1,14 @@
+{
+  "id": 13,
+  "name": "Heavy door",
+  "group": "switch",
+  "source": "Nhom tu thiet ke",
+  "grid": [
+    "#####--####",
+    "#S#X#BB##G#",
+    "#####--####"
+  ],
+  "start": { "pos": [1, 1], "orient": "STAND" },
+  "bridges": [{"id": "b1", "cells": [[1, 5], [1, 6]], "open": false}],
+  "switches": [{"id": "x1", "pos": [1, 3], "type": "heavy", "mode": "open", "bridges": ["b1"]}]
+}

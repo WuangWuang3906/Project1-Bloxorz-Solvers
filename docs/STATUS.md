@@ -11,6 +11,7 @@
 | Kiến trúc | Python = luật + solver (nguồn duy nhất); Godot chỉ vẽ; TCP 127.0.0.1:5555 | Trưởng nhóm + AI | `docs/ARCHITECTURE.md` |
 | **Luật chơi** | `bloxorz/core/rules.py` hoàn chỉnh: lăn, rơi, fragile, cầu, 3 switch, tách/nhập; 66 test luật pass; chơi được trong terminal | Trưởng nhóm + AI | `bloxorz/core/rules.py` |
 | **Server TCP** | `python -m bloxorz.server` (chạy ở thư mục gốc repo); đã thử GUI online: màn 4 đi 7 nước, tách/nhập, thắng. Solve báo "not implemented yet" cho tới khi có thuật toán | Trưởng nhóm + AI | `bloxorz/server.py` |
+| **20 màn chơi** | `levels/level01–20.json`: 5 cơ bản (01, 05–08), 5 ô dễ vỡ (02, 09–12), 5 công tắc/cầu (03, 13–16), 5 tách khối (04, 17–20). Màn nào cũng có lời giải ngắn nhất trong `tests/test_golden.py`, và bắt buộc dùng cơ chế của nhóm (bỏ cơ chế đi thì không giải được). Tất cả tự thiết kế | Trưởng nhóm + AI | `levels/` |
 | Khung Python | `level.py`, `state.py`, `render.py`, `cli.py`, `search/common.py` (đo thời gian/bộ nhớ) chạy được; 4 solver để trống có TODO | AI | `bloxorz/` |
 | Unit test | 91 test: bảng lăn, luật, fragile, cầu, 3 switch, permanent, split/merge, lời giải mẫu, kiểm tra chéo 4 solver. Đã kiểm chứng bằng bản cài đặt tham khảo riêng (không đưa vào repo): 91/91 pass | Trưởng nhóm + AI | `tests/` |
 | Màn mẫu | 4 màn: basic, fragile, switch, split | AI | `levels/level01–04.json` |
@@ -30,7 +31,7 @@ Nhánh: code mới nhất của trưởng nhóm ở `wuang` (đã push). **Chưa
 | DFS/IDS (`search/dfs.py`) | Thành viên 2 | chưa bắt đầu |
 | UCS (`search/ucs.py`) | Thành viên 3 | chưa bắt đầu |
 | A\* + heuristic, cả khi tách khối (`search/astar.py`, `heuristics.py`) | Thành viên 4 | chưa bắt đầu |
-| Đủ 20 màn; benchmark + biểu đồ | Trưởng nhóm | chưa |
+| Benchmark + biểu đồ | Trưởng nhóm | chưa |
 | Nối GUI với server thật, xoá `gui/scripts/offline_rules.gd` | Trưởng nhóm | chờ |
 | Xuất `.exe`, quay video YouTube, phần GUI/kiểm thử trong báo cáo | Trưởng nhóm | chưa |
 | Báo cáo PDF (phân công + %, mô hình hoá, thí nghiệm, tham khảo, phụ lục AI) | Cả nhóm | chưa |

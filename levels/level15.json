@@ -1,0 +1,15 @@
+{
+  "id": 15,
+  "name": "Toggle trap",
+  "group": "switch",
+  "source": "Nhom tu thiet ke",
+  "grid": [
+    "#####---####",
+    "#S#o#BBB#G##",
+    "#####---####",
+    "---o--------"
+  ],
+  "start": { "pos": [1, 1], "orient": "STAND" },
+  "bridges": [{"id": "b1", "cells": [[1, 5], [1, 6], [1, 7]], "open": false}],
+  "switches": [{"id": "s1", "pos": [1, 3], "type": "soft", "mode": "toggle", "bridges": ["b1"]}, {"id": "s2", "pos": [3, 3], "type": "soft", "mode": "toggle", "bridges": ["b1"]}]
+}
