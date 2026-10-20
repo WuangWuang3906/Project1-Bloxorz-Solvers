@@ -31,7 +31,6 @@ def dfs(level: Level, start: State) -> SearchResult:
         if current in visited:
             continue
         visited.add(current)
-        expanded += 1
 
         # Khối đứng trên đích thì trả kết quả
         if rules.is_goal(level, current):
@@ -41,6 +40,9 @@ def dfs(level: Level, start: State) -> SearchResult:
                 cost=cost_to[current],
                 expanded=expanded,
             )
+        
+        expanded += 1
+
 
         # Vòng lặp để di chuyển khối block đi tiếp và tính trạng thái theo luật
         for action, next_state, step_cost in rules.successors(level, current):
