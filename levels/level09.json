@@ -1,15 +1,20 @@
 {
   "id": 9,
-  "name": "Orange carpet",
-  "group": "fragile",
+  "name": "Closing gate",
+  "group": "switch",
   "source": "Nhom tu thiet ke",
   "grid": [
-    "###-----------",
-    "#S#FFFFFFF####",
-    "###FFFFFFF#G##",
-    "----------####"
+    "####-----####",
+    "#S##BBBBB##G#",
+    "#o##-----#X##",
+    "####-----####"
   ],
-  "start": { "pos": [1, 1], "orient": "STAND" },
-  "bridges": [],
-  "switches": []
+  "start": {"pos": [1, 1], "orient": "STAND"},
+  "bridges": [
+    {"id": "b1", "cells": [[1, 4], [1, 5], [1, 6], [1, 7], [1, 8]], "open": false}
+  ],
+  "switches": [
+    {"id": "s1", "pos": [2, 1], "type": "soft", "mode": "open", "bridges": ["b1"]},
+    {"id": "x1", "pos": [2, 10], "type": "heavy", "mode": "close", "bridges": ["b1"]}
+  ]
 }

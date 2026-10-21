@@ -71,15 +71,15 @@ python -m bloxorz solve levels/level01.json --algo bfs --replay
 | Việc | Biết là xong khi |
 | --- | --- |
 | `bloxorz/server.py` (cầu nối GUI ↔ Python) | GUI hiện `● Python server`, bấm Solve chạy |
-| Đủ 20 màn (5 cơ bản, 5 ô dễ vỡ, 5 công tắc/cầu, 5 tách khối) | mỗi màn có 1 lời giải trong `test_golden.py` |
-| `benchmark/run_benchmark.py` + bảng, biểu đồ | chạy hết 20 màn × 4 thuật toán |
+| Đủ 15 màn (3 cơ bản, 3 ô dễ vỡ, 3 công tắc/cầu, 3 tách khối, 3 màn lớn) | mỗi màn có 1 lời giải trong `test_golden.py` |
+| `benchmark/run_benchmark.py` + bảng, biểu đồ | chạy hết 15 màn × 4 thuật toán |
 | Xuất `.exe`, video, ghép báo cáo | nộp trước 12:00 ngày 1/11 |
 
 ## 4. Thứ tự làm
 
 ```text
 Luật chơi (xong) ──► 4 bạn viết BFS / DFS / UCS / A* song song, độc lập nhau
-                 ──► trưởng nhóm: server, 20 màn, benchmark
+                 ──► trưởng nhóm: server, 15 màn, benchmark
 4 thuật toán xong ──► chạy benchmark ──► cả nhóm viết báo cáo ──► video + nộp
 ```
 

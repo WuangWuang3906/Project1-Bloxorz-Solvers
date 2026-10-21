@@ -55,7 +55,7 @@ Trường của `switches[]`:
 - `bridges`: danh sách id cầu bị tác động. Với split switch có thể để rỗng.
 - Riêng split switch: `"split_to": [[r1, c1], [r2, c2]]`. Cube 1 được điều khiển trước.
 
-`group` thuộc một trong bốn giá trị: `basic`, `fragile`, `switch`, `split` (4 nhóm × 5 màn = 20 màn).
+`group` thuộc một trong năm giá trị: `basic`, `fragile`, `switch`, `split`, `hard` (màn lớn) — 5 nhóm × 3 màn = 15 màn.
 
 ## 3. Trạng thái (GUI ↔ Python, và để debug)
 

@@ -1,16 +1,17 @@
 {
   "id": 6,
-  "name": "Zigzag",
-  "group": "basic",
-  "source": "Nhom tu thiet ke",
+  "name": "Safe detour",
+  "group": "fragile",
+  "source": "Nhom tu thiet ke (minh hoa UCS khac BFS)",
   "grid": [
-    "#####---------",
-    "#S###---######",
-    "#####---###G##",
-    "--#########---",
-    "--####---####-"
+    "###FFFFFFFFFF###",
+    "#S#FFFFFFFFFF#G#",
+    "###FFFFFFFFFF###",
+    "#--------------#",
+    "#--------------#",
+    "################"
   ],
-  "start": { "pos": [1, 1], "orient": "STAND" },
+  "start": {"pos": [1, 1], "orient": "STAND"},
   "bridges": [],
   "switches": []
 }

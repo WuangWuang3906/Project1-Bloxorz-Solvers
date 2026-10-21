@@ -1,16 +1,22 @@
 {
   "id": 12,
-  "name": "Fragile maze",
-  "group": "fragile",
+  "name": "Grand finale",
+  "group": "split",
   "source": "Nhom tu thiet ke",
   "grid": [
-    "###FFF#####---",
-    "#S#FFF##F##---",
-    "###FFF#FFF####",
-    "------#FFF##G#",
-    "------####FF##"
+    "####FF####--------",
+    "#S##FF##X#BB###P--",
+    "####FF####--------",
+    "------------#####-",
+    "------------#####-",
+    "------------##G##-"
   ],
-  "start": { "pos": [1, 1], "orient": "STAND" },
-  "bridges": [],
-  "switches": []
+  "start": {"pos": [1, 1], "orient": "STAND"},
+  "bridges": [
+    {"id": "b1", "cells": [[1, 10], [1, 11]], "open": false}
+  ],
+  "switches": [
+    {"id": "x1", "pos": [1, 8], "type": "heavy", "mode": "open", "bridges": ["b1"]},
+    {"id": "p1", "pos": [1, 15], "type": "split", "mode": "toggle", "bridges": [], "split_to": [[4, 12], [4, 16]]}
+  ]
 }

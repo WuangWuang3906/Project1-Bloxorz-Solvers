@@ -25,6 +25,8 @@ pip install -r requirements.txt
 
 Test của phần chưa viết sẽ **fail** cho tới khi phần đó xong — đó là danh sách việc cần làm. Chạy riêng một file: `pytest tests/test_roll.py -q`.
 
+Ba màn lớn (13–15) làm cả bộ test mất ~35 s. Khi đang sửa code, chạy nhanh bằng `pytest -q -m "not slow"` (bỏ 3 màn lớn, < 1 s); trước khi commit thì chạy đủ `pytest -q`.
+
 ### b) Xem bàn cờ bằng chữ
 
 ```bash

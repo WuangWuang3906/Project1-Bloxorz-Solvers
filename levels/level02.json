@@ -1,20 +1,17 @@
 {
   "id": 2,
-  "name": "Thin ice",
-  "group": "fragile",
+  "name": "Long way round",
+  "group": "basic",
   "source": "Nhom tu thiet ke",
   "grid": [
-    "####FFFF###-",
-    "#S##FFFF##G#",
-    "####FFFF####"
+    "###-------",
+    "#S######--",
+    "######-###",
+    "--###--#G#",
+    "--########",
+    "------####"
   ],
-  "start": {
-    "pos": [
-      1,
-      1
-    ],
-    "orient": "STAND"
-  },
+  "start": {"pos": [1, 1], "orient": "STAND"},
   "bridges": [],
   "switches": []
 }

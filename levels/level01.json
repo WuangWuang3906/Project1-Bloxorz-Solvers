@@ -11,7 +11,7 @@
     "-----##G##",
     "------###-"
   ],
-  "start": { "pos": [1, 1], "orient": "STAND" },
+  "start": {"pos": [1, 1], "orient": "STAND"},
   "bridges": [],
   "switches": []
 }

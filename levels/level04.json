@@ -1,17 +1,14 @@
 {
   "id": 4,
-  "name": "Two halves",
-  "group": "split",
+  "name": "Thin ice",
+  "group": "fragile",
   "source": "Nhom tu thiet ke",
   "grid": [
-    "#####--###",
-    "#S##P--###",
-    "#####--###",
-    "-------#G#"
+    "####FFFF###-",
+    "#S##FFFF##G#",
+    "####FFFF####"
   ],
-  "start": { "pos": [1, 1], "orient": "STAND" },
+  "start": {"pos": [1, 1], "orient": "STAND"},
   "bridges": [],
-  "switches": [
-    { "id": "p1", "pos": [1, 4], "type": "split", "mode": "toggle", "bridges": [], "split_to": [[0, 7], [2, 9]] }
-  ]
+  "switches": []
 }

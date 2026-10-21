@@ -16,7 +16,8 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
-from matplotlib.patches import Patch  # noqa: E402
+from matplotlib.patches import Patch
+from matplotlib.ticker import FuncFormatter
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -25,8 +26,8 @@ ROOT = Path(__file__).resolve().parents[1]
 ALGOS = ["bfs", "dfs", "ucs", "astar"]
 LABELS = {"bfs": "BFS", "dfs": "DFS", "ucs": "UCS", "astar": "A*"}
 COLORS = {"bfs": "#2a78d6", "dfs": "#eb6834", "ucs": "#1baf7a", "astar": "#eda100"}
-GROUPS = ["basic", "fragile", "switch", "split"]
-GROUP_LABELS = {"basic": "Cơ bản", "fragile": "Ô dễ vỡ", "switch": "Công tắc & cầu", "split": "Tách khối"}
+GROUPS = ["basic", "fragile", "switch", "split", "hard"]
+GROUP_LABELS = {"basic": "Cơ bản", "fragile": "Ô dễ vỡ", "switch": "Công tắc & cầu", "split": "Tách khối", "hard": "Màn lớn"}
 
 SURFACE, INK, INK_2, GRID = "#fcfcfb", "#0b0b0b", "#52514e", "#e4e3df"
 
@@ -69,6 +70,12 @@ def bar_chart(avg: dict, title: str, unit: str, out: Path) -> None:
         # surface-coloured edge = the 2px gap between adjacent bars
         ax.bar(xs, ys, width=width, color=COLORS[a], edgecolor=SURFACE, linewidth=1.5, zorder=3)
     ax.set_xticks(range(len(GROUPS)), [GROUP_LABELS[g] for g in GROUPS], color=INK)
+    # big levels are 100-1000x the small ones: a log axis keeps every group readable
+    vals = [v for v in avg.values() if v > 0]
+    if vals and max(vals) / min(vals) > 50:
+        ax.set_yscale("log")
+        ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}"))
+        unit += " (thang log)"
     ax.set_ylabel(unit, color=INK_2)
     ax.set_title(title, loc="left", color=INK, fontsize=12, fontweight="bold", pad=28)
     ax.yaxis.grid(True, color=GRID, linewidth=0.8, zorder=0)

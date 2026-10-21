@@ -38,7 +38,7 @@ from bloxorz.search.common import run_solver  # noqa: E402
 
 FIELDS = ["level", "name", "group", "algo", "status", "length", "cost",
           "expanded", "time_ms", "peak_kb", "valid"]
-GROUP_ORDER = ["basic", "fragile", "switch", "split"]
+GROUP_ORDER = ["basic", "fragile", "switch", "split", "hard"]
 
 
 def measure(level_path: str, algo: str, repeats: int, out: mp.Queue) -> None:

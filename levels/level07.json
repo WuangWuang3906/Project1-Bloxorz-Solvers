@@ -1,15 +1,18 @@
 {
   "id": 7,
-  "name": "Narrow pass",
-  "group": "basic",
+  "name": "Open the bridge",
+  "group": "switch",
   "source": "Nhom tu thiet ke",
   "grid": [
-    "####-----####",
-    "#S##-----#G##",
-    "#############",
-    "####-----####"
+    "#####--####",
+    "#S#o#BB##G#",
+    "#####--####"
   ],
-  "start": { "pos": [1, 1], "orient": "STAND" },
-  "bridges": [],
-  "switches": []
+  "start": {"pos": [1, 1], "orient": "STAND"},
+  "bridges": [
+    {"id": "b1", "cells": [[1, 5], [1, 6]], "open": false}
+  ],
+  "switches": [
+    {"id": "s1", "pos": [1, 3], "type": "soft", "mode": "toggle", "bridges": ["b1"]}
+  ]
 }
