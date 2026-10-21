@@ -6,6 +6,7 @@ venv/
 .pytest_cache/
 
 # Godot
+tools/godot/
 gui/.godot/
 gui/export/
 *.import.tmp

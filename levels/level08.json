@@ -1,0 +1,16 @@
+{
+  "id": 8,
+  "name": "Island hop",
+  "group": "basic",
+  "source": "Nhom tu thiet ke",
+  "grid": [
+    "###----------",
+    "#S####---####",
+    "######---##G#",
+    "-##########--",
+    "------####---"
+  ],
+  "start": { "pos": [1, 1], "orient": "STAND" },
+  "bridges": [],
+  "switches": []
+}

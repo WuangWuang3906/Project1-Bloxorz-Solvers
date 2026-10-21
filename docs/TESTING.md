@@ -19,6 +19,7 @@ pip install -r requirements.txt
 | `tests/test_level.py` | đọc JSON màn chơi |
 | `tests/test_roll.py` | 12 ô của bảng lăn |
 | `tests/test_rules.py` | rơi khỏi bàn, fragile, cầu, switch, thắng |
+| `tests/test_split.py` | tách/nhập khối, đổi khối, cube đơn với switch/fragile/goal, switch permanent `open`/`close` |
 | `tests/test_golden.py` | lời giải mẫu hợp lệ; BFS cho đúng độ dài ngắn nhất đã biết |
 | `tests/test_solvers.py` | 4 solver đều tìm ra lời giải hợp lệ; BFS = IDS = độ dài tối ưu; A\* cost = UCS cost |
 

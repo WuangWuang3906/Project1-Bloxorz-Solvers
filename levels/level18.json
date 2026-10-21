@@ -1,0 +1,15 @@
+{
+  "id": 18,
+  "name": "Cube opens the way",
+  "group": "split",
+  "source": "Nhom tu thiet ke",
+  "grid": [
+    "#####-----####",
+    "#S##P--o--#G##",
+    "#####--#--####",
+    "-------#BB####"
+  ],
+  "start": { "pos": [1, 1], "orient": "STAND" },
+  "bridges": [{"id": "b1", "cells": [[3, 8], [3, 9]], "open": false}],
+  "switches": [{"id": "p1", "pos": [1, 4], "type": "split", "mode": "toggle", "bridges": [], "split_to": [[1, 7], [1, 11]]}, {"id": "s1", "pos": [1, 7], "type": "soft", "mode": "open", "bridges": ["b1"]}]
+}

@@ -1,0 +1,15 @@
+{
+  "id": 10,
+  "name": "Do not stand",
+  "group": "fragile",
+  "source": "Nhom tu thiet ke",
+  "grid": [
+    "####------",
+    "#S##FF####",
+    "####FF##G#",
+    "------####"
+  ],
+  "start": { "pos": [1, 1], "orient": "STAND" },
+  "bridges": [],
+  "switches": []
+}

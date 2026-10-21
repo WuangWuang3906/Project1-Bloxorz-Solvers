@@ -1,0 +1,15 @@
+{
+  "id": 11,
+  "name": "Cracked bridge",
+  "group": "fragile",
+  "source": "Nhom tu thiet ke",
+  "grid": [
+    "####----------",
+    "#S##FFFFFF####",
+    "####FFFFFF#G##",
+    "----------####"
+  ],
+  "start": { "pos": [1, 1], "orient": "STAND" },
+  "bridges": [],
+  "switches": []
+}

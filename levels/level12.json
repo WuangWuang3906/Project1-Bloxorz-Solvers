@@ -1,0 +1,16 @@
+{
+  "id": 12,
+  "name": "Fragile maze",
+  "group": "fragile",
+  "source": "Nhom tu thiet ke",
+  "grid": [
+    "###FFF#####---",
+    "#S#FFF##F##---",
+    "###FFF#FFF####",
+    "------#FFF##G#",
+    "------####FF##"
+  ],
+  "start": { "pos": [1, 1], "orient": "STAND" },
+  "bridges": [],
+  "switches": []
+}
