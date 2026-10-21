@@ -18,6 +18,7 @@
 | **UCS** | Hàng đợi ưu tiên theo chi phí; chi phí tối ưu cả 15 màn | Hoàng (`hoang`, PR #2) | `bloxorz/search/ucs.py` |
 | **A\*** | f = g + h, cho mở lại trạng thái khi tìm được đường rẻ hơn (`best_cost`). Heuristic: Manhattan của ô gần đích nhất / 2, +0.5 nếu chưa đứng. Đã kiểm trên mọi trạng thái của bộ 22 màn cũ (gồm các màn tách khối 10–12 hiện tại): **admissible** (0 lần đoán quá) nhưng **không consistent** (vài bước ở màn tách khối), nên báo cáo không được ghi "consistent". Chi phí bằng UCS, duyệt ít nút hơn UCS ở mọi màn. Ở màn tách khối lớn (14, 15) chỉ ít hơn ~15%, vì heuristic yếu khi tách khối; thời gian và bộ nhớ không tốt hơn UCS (tốn thêm tính và lưu h) | LightR / Sang (`LightR`, PR #6) | `bloxorz/search/astar.py`, `heuristics.py` |
 | **Số liệu 4 thuật toán** | Đã chạy benchmark 2026-10-21: 15/15 màn × 4 thuật toán đều giải được, lời giải hợp lệ (~3 phút). Màn nhỏ vài ms; màn lớn BFS/UCS/A\* 0.1–4 s, DFS nhanh hơn ~20 lần nhưng lời giải tới 4415 nước (màn 15) | Trưởng nhóm + AI | `results/benchmark.csv`, `results/summary.md`, `results/figures/` (không commit, chạy lại bằng lệnh trong README) |
+| **GUI với màn lớn** | Thử với server thật màn 15: camera thu đủ bàn 48 cột; BFS phát lại 72 nước thắng; khi chờ giải có đồng hồ giây; phát lại có **F** tua nhanh (x1/x4/x16) và **Esc** nhảy tới cuối (lệnh server mới `apply`, DFS 4415 nước xong trong vài giây); tự kết nối lại server khi Offline (chưa thử tự động, cần thử tay); màn chọn màn 3 cột = 5 nhóm | Trưởng nhóm + AI | `gui/scripts/main.gd`, `bloxorz/server.py` |
 | Khung Python | `level.py`, `state.py`, `render.py`, `cli.py`, `search/common.py` (đo thời gian/bộ nhớ) | AI | `bloxorz/` |
 | Unit test | 180 test: bảng lăn, luật, fragile, cầu, 3 switch, permanent, split/merge, lời giải mẫu 15 màn, kiểm tra chéo 4 solver. **180/180 pass** (~35 s; `pytest -q -m "not slow"` bỏ 3 màn lớn, chạy < 1 s) | Trưởng nhóm + AI | `tests/` |
 | GUI Godot 4.7.2 | Bàn 3D từ JSON; khối voxel "khỉ lửa" lăn đúng vật lý (giữ hướng xoay); rơi lộn nhào qua mép; tách 2 cube + đổi khối + nhập lại; cầu lật lên/xuống; camera kéo chuột/zoom; HUD voxel; màn chọn màn; TCP client (online) + luật tạm (offline) | Trưởng nhóm + AI | `gui/` |
@@ -33,7 +34,6 @@ Nhánh: `main` đã có đủ 4 thuật toán (PR #2, #4, #5, #6); `wuang` đã 
 | --- | --- | --- |
 | Sửa vặt A\*: docstring complete/optimal/độ phức tạp, chuỗi `"""` lọt giữa `default_heuristic`, gõ sai "mahattan", tên chủ file, dòng trống cuối file | LightR | chưa |
 | Mỗi bạn ghi prompt AI đã dùng vào `docs/AI_USAGE.md` | Cả nhóm | chưa |
-| Thử GUI online: Solve cả 4 thuật toán trên vài màn (nhất là tách khối); cân nhắc tự kết nối lại khi Offline | Trưởng nhóm | chưa |
 | Xuất `.exe` GUI + hướng dẫn chạy server trong README | Trưởng nhóm | chưa |
 | Báo cáo PDF (phân công + %, mô hình hoá, mỗi thuật toán, thí nghiệm + biểu đồ + nhận xét, tham khảo, phụ lục AI), một ngôn ngữ | Cả nhóm | chưa |
 | Quay video YouTube công khai (chơi tay + Solve, có thuyết minh/phụ đề) | Trưởng nhóm | chưa |

@@ -41,6 +41,16 @@ class Session:
             if res.state is not None:
                 self.state = res.state
             return {"ok": True, "state": res.state.to_json() if res.state else None, "events": res.events}
+        if cmd == "apply":
+            # Several moves at once (GUI "skip to the end" of a replay). Stops at the first fall.
+            events: list[str] = []
+            for action in msg.get("actions", []):
+                res = rules.step(self.level, self.state, action)
+                events = res.events
+                if res.state is None:
+                    return {"ok": True, "state": None, "events": events}
+                self.state = res.state
+            return {"ok": True, "state": self.state.to_json(), "events": events}
         if cmd == "solve":
             algo = msg.get("algo", "")
             if algo not in ALGORITHMS:

@@ -71,6 +71,7 @@ def bfs(level, start: State) -> SearchResult: ...
 | --- | --- |
 | `{"cmd":"load","path":"levels/level01.json"}` | `{"ok":true,"level":{...},"state":{...}}` |
 | `{"cmd":"move","action":"R"}` (cả `SWITCH`) | `{"ok":true,"state":{...},"events":["bridge:b1:open"]}` hoặc `{"ok":true,"state":null,"events":["fall"]}` |
+| `{"cmd":"apply","actions":["R","D",...]}` (nhiều nước một lúc, dùng khi bỏ qua phát lại) | `{"ok":true,"state":{...},"events":[...]}` của nước cuối; dừng ở nước rơi đầu tiên (`"state":null`) |
 | `{"cmd":"restart"}` | `{"ok":true,"state":{...}}` |
 | `{"cmd":"solve","algo":"astar"}` | `{"ok":true,"result":{...}}` (dạng file kết quả trong JSON_FORMAT) |
 | lỗi | `{"ok":false,"error":"..."}` |

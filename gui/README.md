@@ -21,6 +21,8 @@ Hoặc mở Godot, Import → chọn `gui/project.godot` → F5.
 | Zoom | con lăn chuột |
 | Xoay 90° / về góc mặc định | Q, E / Home |
 | Chơi lại | R |
+| Khi đang phát lại lời giải: tua nhanh x1 → x4 → x16 | F |
+| Khi đang phát lại lời giải: bỏ qua, nhảy tới cuối | Esc |
 
 Kiểm tra tự động (chụp ảnh rồi thoát), tham số sau `--`:
 
@@ -28,14 +30,14 @@ Kiểm tra tự động (chụp ảnh rồi thoát), tham số sau `--`:
 tools\godot\Godot_v4.7.2-stable_win64_console.exe --path gui -- --level=3 --solve=astar --screenshot=shot.png
 ```
 
-`--level=N` (0-based), `--moves=RRDT` (`T` = đổi khối), `--solve=bfs|dfs|ucs|astar`, `--shot-at=GIÂY` (chụp giữa nước cuối), `--yaw/--pitch/--zoom`, `--select`.
+`--level=N` (0-based), `--moves=RRDT` (`T` = đổi khối), `--solve=bfs|dfs|ucs|astar`, `--shot-at=GIÂY` (chụp giữa nước cuối), `--skip-at=GIÂY` (giả lập Esc sau GIÂY giây phát lại), `--yaw/--pitch/--zoom`, `--select`.
 
 ## Hai chế độ
 
-- **Online** (góc HUD hiện `● Python server`): khi `python -m bloxorz.server` đang chạy ở **thư mục gốc repo**, cổng 5555. Mọi nước đi và Solve đều hỏi Python.
-- **Offline** (`○ Offline`): không có server. GUI dùng `scripts/offline_rules.gd` (bản sao tạm của luật, có cả tách/nhập khối) và nút Solve phát lại `results/sample/levelXX_<algo>.json`. Sẽ bỏ khi server ổn định.
+- **Online** (góc HUD hiện `● Python server`): khi `python -m bloxorz.server` đang chạy ở **thư mục gốc repo**, cổng 5555. Mọi nước đi và Solve đều hỏi Python. Khi chờ giải, thanh trạng thái đếm giây (màn 15 BFS mất khoảng 15 giây vì server đo cả bộ nhớ).
+- **Offline** (`○ Offline`): không có server. GUI dùng `scripts/offline_rules.gd` (bản sao tạm của luật, có cả tách/nhập khối) và nút Solve phát lại `results/sample/levelXX_<algo>.json`. Lỡ mở game trước server thì không cần tắt game: bật server rồi bấm RESTART, chọn một màn hoặc bấm một nút Solve, game tự kết nối lại.
 
-Đã thử vòng online bằng một server giả: load → solve A\* → phát lại 7 nước có tách, đổi khối, nhập lại, thắng.
+Đã thử với server thật (2026-10-21): màn 15 *Grand tour* — BFS phát lại trọn 72 nước (tách, đổi khối, nhập, thắng); DFS 4415 nước bỏ qua bằng Esc, tới đích đúng.
 
 | File | Vai trò |
 | --- | --- |

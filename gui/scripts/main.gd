@@ -7,6 +7,7 @@ extends Node3D
 ##
 ## Controls: arrows/WASD roll, Tab/Space switch cube, R restart,
 ## mouse drag rotate camera, wheel zoom, Q/E rotate 90°, Home reset camera.
+## While a solution replays: F fast-forward (x1/x4/x16), Esc skip to the end.
 ##
 ## Command line (for automated checks), after `--`:
 ##   --level=N         start at level index N (0-based); skips the level screen
@@ -14,6 +15,7 @@ extends Node3D
 ##   --shot-at=SEC     take the screenshot SEC seconds into the last move
 ##   --yaw=DEG --pitch=DEG --zoom=F   camera override
 ##   --solve=ALGO      press a Solve button first
+##   --skip-at=SEC     press Esc SEC seconds into the replay
 ##   --goal=ring|plain   goal look
 ##   --select          open the level screen
 ##   --screenshot=P    save a PNG to P, then quit
@@ -21,6 +23,7 @@ extends Node3D
 const DEFAULT_YAW := -19.0
 const DEFAULT_PITCH := 55.0
 const CAM_FOV := 34.0
+const REPLAY_SPEEDS := [1.0, 4.0, 16.0]
 
 var repo_dir: String = ProjectSettings.globalize_path("res://").path_join("..").simplify_path()
 var level_files: Array = []
@@ -30,6 +33,10 @@ var state: Dictionary
 var moves: int = 0
 var busy: bool = false
 var online: bool = false
+var replaying: bool = false
+var replay_speed: int = 0          # index in REPLAY_SPEEDS
+var skip_requested: bool = false
+var solving: bool = false
 
 var cam_yaw: float = DEFAULT_YAW
 var cam_pitch: float = DEFAULT_PITCH
@@ -179,6 +186,9 @@ func _find_levels() -> void:
 
 
 func _load_level(index: int) -> void:
+	if not online and not replaying:   # server may have been started after the game
+		online = await net.try_connect(0.3)
+		ui.set_mode(online)
 	if level_files.is_empty():
 		ui.set_status("Không tìm thấy màn chơi trong levels/")
 		return
@@ -228,6 +238,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		cam_pitch = clampf(cam_pitch + mm.relative.y * 0.25, 20.0, 88.0)
 		return
 	if not (event is InputEventKey and event.pressed and not event.echo):
+		return
+	if replaying:
+		if event.keycode == KEY_F:
+			replay_speed = (replay_speed + 1) % REPLAY_SPEEDS.size()
+			Engine.time_scale = REPLAY_SPEEDS[replay_speed]
+			_replay_hint()
+		elif event.keycode == KEY_ESCAPE:
+			skip_requested = true
 		return
 	match event.keycode:
 		KEY_UP, KEY_W:
@@ -350,10 +368,12 @@ func _solve(algo: String) -> void:
 		return
 	busy = true
 	var result: Dictionary = {}
+	await _load_level(level_index)   # also retries the server if offline
 	if online:
-		await _load_level(level_index)
-		ui.set_status("Python đang giải bằng %s..." % algo.to_upper())
+		solving = true
+		_tick_solving(algo)
 		var r := await net.request({"cmd": "solve", "algo": algo})
+		solving = false
 		if r.get("ok", false):
 			result = r["result"]
 		else:
@@ -370,12 +390,67 @@ func _solve(algo: String) -> void:
 			ui.set_status("%s không tìm được lời giải" % algo.to_upper())
 		else:
 			await _load_level(level_index)
-			ui.set_status("Đang phát lại lời giải %s (%d nước)..." % [algo.to_upper(), result["actions"].size()])
-			for a in result["actions"]:
-				if not await _do_move(str(a)):
-					break
-				await get_tree().create_timer(0.08).timeout
+			await _replay(algo, result["actions"])
 	busy = false
+
+
+## Show the elapsed time while the server is solving (big levels take seconds).
+func _tick_solving(algo: String) -> void:
+	var t0 := Time.get_ticks_msec()
+	while solving:
+		ui.set_status("Python đang giải bằng %s... %.1f s" % [algo.to_upper(), (Time.get_ticks_msec() - t0) / 1000.0])
+		await get_tree().create_timer(0.2).timeout
+
+
+func _replay(algo: String, actions: Array) -> void:
+	replaying = true
+	skip_requested = false
+	replay_speed = 0
+	Engine.time_scale = 1.0
+	_replay_algo = "%s (%d nước)" % ["A*" if algo == "astar" else algo.to_upper(), actions.size()]
+	_replay_hint()
+	var i := 0
+	while i < actions.size() and not skip_requested:
+		if not await _do_move(str(actions[i])):
+			break
+		i += 1
+		await get_tree().create_timer(0.08).timeout
+	Engine.time_scale = 1.0
+	if skip_requested and i < actions.size():
+		await _jump(actions.slice(i))
+	replaying = false
+
+
+var _replay_algo: String = ""
+
+
+func _replay_hint() -> void:
+	ui.set_status("Phát lại %s · x%d · F tua nhanh · Esc tới cuối" % [_replay_algo, int(REPLAY_SPEEDS[replay_speed])])
+
+
+## Apply the remaining moves without animation (Esc during a replay).
+func _jump(rest: Array) -> void:
+	var next: Variant = state
+	if online:
+		var r := await net.request({"cmd": "apply", "actions": rest})
+		next = NetClient.state_from_json(r.get("state")) if r.get("ok", false) else null
+	else:
+		for a in rest:
+			next = OfflineRules.step(level, next, str(a))["state"]
+			if next == null:
+				break
+	if next == null:
+		ui.set_status("Không bỏ qua được (lời giải lỗi?) — chơi lại màn")
+		await _load_level(level_index)
+		return
+	state = next
+	board.set_bridges(state["open"], false)
+	block.set_state(state)
+	moves += rest.size()
+	ui.set_moves(moves)
+	if OfflineRules.is_goal(level, state):
+		ui.set_status("Hoàn thành màn trong %d nước!" % moves)
+		await block.sink()
 
 
 # ---- automation --------------------------------------------------------
@@ -394,6 +469,8 @@ func _run_script(args: Dictionary) -> void:
 	var seq: Array = []
 	for ch in str(args.get("moves", "")):
 		seq.append("SWITCH" if ch == "T" else ch)
+	if args.has("skip-at"):
+		_skip_later(float(args["skip-at"]))
 	if args.has("solve"):
 		await _solve(str(args["solve"]))
 	for i in seq.size():
@@ -405,6 +482,13 @@ func _run_script(args: Dictionary) -> void:
 		await _do_move(seq[i])
 	await get_tree().create_timer(0.6).timeout
 	_save_shot(args["screenshot"])
+
+
+func _skip_later(sec: float) -> void:
+	while not replaying:
+		await get_tree().process_frame
+	await get_tree().create_timer(sec).timeout
+	skip_requested = true
 
 
 func _save_shot(path: String) -> void:

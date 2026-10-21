@@ -11,6 +11,7 @@ signal solve_pressed(algo: String)
 const ALGOS := [["BFS", "bfs"], ["DFS", "dfs"], ["UCS", "ucs"], ["A*", "astar"]]
 const GROUP_COLORS := {
 	"basic": Color("f6efe6"), "fragile": Color("ffb347"), "switch": Color("7fd6ff"), "split": Color("ffd23f"),
+	"hard": Color("ff8fa3"),
 }
 
 var _title: Label
@@ -76,7 +77,7 @@ func set_levels(levels: Array) -> void:
 		var color: Color = GROUP_COLORS.get(lv["group"], Color.WHITE)
 		var b := Button.new()
 		b.focus_mode = Control.FOCUS_NONE
-		b.custom_minimum_size = Vector2(170, 92)
+		b.custom_minimum_size = Vector2(228, 92)
 		b.text = "%02d\n%s\n%s" % [lv["id"], lv["name"], str(lv["group"]).to_upper()]
 		b.add_theme_font_size_override("font_size", 15)
 		b.add_theme_font_override("font", _font)
@@ -152,7 +153,7 @@ func _build_level_select() -> void:
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	v.add_child(scroll)
 	_grid = GridContainer.new()
-	_grid.columns = 4
+	_grid.columns = 3   # 15 levels = 5 groups x 3, one group per row
 	_grid.add_theme_constant_override("h_separation", 14)
 	_grid.add_theme_constant_override("v_separation", 14)
 	scroll.add_child(_grid)

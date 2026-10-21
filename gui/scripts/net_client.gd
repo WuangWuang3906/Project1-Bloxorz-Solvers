@@ -13,6 +13,8 @@ var _buffer: String = ""
 
 ## Try to connect for up to `timeout` seconds. Returns true when connected.
 func try_connect(timeout: float = 0.6) -> bool:
+	_tcp.disconnect_from_host()   # reset a peer left in an error state
+	_buffer = ""
 	if _tcp.connect_to_host(HOST, PORT) != OK:
 		return false
 	var deadline := Time.get_ticks_msec() + int(timeout * 1000)
