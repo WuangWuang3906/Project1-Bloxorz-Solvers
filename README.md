@@ -23,7 +23,7 @@ pytest -q
 python -m bloxorz show levels/level01.json
 ```
 
-Đọc tiếp: [AGENTS.md](AGENTS.md) (quy định chung, cả cho AI) → [docs/TESTING.md](docs/TESTING.md) → [CONTRIBUTING.md](CONTRIBUTING.md).
+**Thành viên mới: đọc [docs/ONBOARDING.md](docs/ONBOARDING.md) trước.** Đọc tiếp: [AGENTS.md](AGENTS.md) (quy định chung, cả cho AI) → [docs/TESTING.md](docs/TESTING.md) → [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Chạy
 
@@ -34,7 +34,8 @@ python -m bloxorz show levels/level01.json
 | Giải | `python -m bloxorz solve levels/level01.json --algo astar` |
 | Kiểm chứng lời giải | `python -m bloxorz verify levels/level01.json results/x.json` |
 | Server cho GUI | `python -m bloxorz.server --port 5555` |
-| Benchmark | `python benchmark/run_benchmark.py` |
+| Đo đạc (không mở GUI) | `python benchmark/run_benchmark.py` → `results/benchmark.csv`, `results/summary.md` |
+| Vẽ biểu đồ | `python benchmark/plot_results.py` → `results/figures/*.png` |
 | GUI | Mở `gui/project.godot` bằng **Godot 4.7.2** (xem [gui/README.md](gui/README.md)) |
 
 ## Tham khảo

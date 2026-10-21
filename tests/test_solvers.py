@@ -40,3 +40,12 @@ def test_unsolvable_level_returns_not_found():
     level = make_level(["S#-#G"])
     for algo, fn in ALGORITHMS.items():
         assert not fn(level, rules.initial_state(level)).found, algo
+
+
+@pytest.mark.parametrize("name", ["level21.json", "level22.json"])
+def test_ucs_takes_longer_but_cheaper_path_than_bfs(name):
+    """Levels 21-22: a short route over fragile tiles vs a longer solid detour."""
+    _, b = solve("bfs", name)
+    _, u = solve("ucs", name)
+    assert len(u.actions) > len(b.actions)
+    assert u.cost < b.cost

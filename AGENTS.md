@@ -8,6 +8,10 @@
 - Nhóm 5 người. Deadline **22:00 ngày 2026-11-01**; mục tiêu nội bộ nộp trước 12:00 cùng ngày.
 - Kiến trúc: **Python** chứa luật chơi (nguồn duy nhất) và 4 solver. **Godot 4** chỉ vẽ 3D và gọi Python qua TCP.
 
+## 0. Trạng thái hiện tại — đọc trước tiên
+
+**[docs/STATUS.md](docs/STATUS.md)** ghi việc đã xong, việc đang chờ, quyết định đã chốt và câu hỏi còn mở. Đọc nó **trước mọi việc khác** ở mỗi phiên, và cập nhật nó khi xong một mốc. Đừng dựa vào trí nhớ của cuộc trò chuyện trước.
+
 ## 2. Tài liệu phải đọc (theo thứ tự)
 
 1. [docs/GAME_RULES.md](docs/GAME_RULES.md): luật đã chốt, chi phí, tham số tối ưu.
@@ -16,6 +20,8 @@
 4. [docs/TESTING.md](docs/TESTING.md): cách test khi chưa có GUI.
 5. [CONTRIBUTING.md](CONTRIBUTING.md): quy trình nhánh, commit, review.
 6. [docs/PLAN.md](docs/PLAN.md): vai trò và mốc thời gian.
+7. [docs/ONBOARDING.md](docs/ONBOARDING.md): việc cụ thể và test phải pass của từng vai.
+8. [docs/STATUS.md](docs/STATUS.md): tiến độ (xem mục 0).
 
 Nếu một yêu cầu mâu thuẫn với các file này: **dừng lại và hỏi người dùng**, không tự đổi luật.
 
@@ -24,7 +30,7 @@ Nếu một yêu cầu mâu thuẫn với các file này: **dừng lại và h�
 1. **Tự cài thuật toán.** BFS, DFS/IDS, UCS, A\* phải tự viết bằng Python. Không dùng thư viện tìm kiếm có sẵn (networkx, simpleai, aima-python...) và không chép solver từ repo khác. Được dùng `collections.deque`, `heapq`, `dataclasses`.
 2. **Không sửa luật tuỳ tiện.** Luật chỉ nằm trong `bloxorz/core/`. Muốn đổi luật thì sửa `docs/GAME_RULES.md` trước và được nhóm đồng ý.
 3. **Không phá hợp đồng dữ liệu.** Không đổi tên trường JSON, tên action (`U D L R SWITCH`) hay chữ ký hàm public trong `docs/ARCHITECTURE.md` khi chưa báo cả nhóm.
-4. **Mọi solver** nhận `(level, state0)` và trả `SearchResult`, có đo bằng `bloxorz.search.common.measure`. Không tự đo theo cách khác.
+4. **Mọi solver** nhận `(level, state0)` và trả `SearchResult`, được chạy và đo qua `bloxorz.search.common.run_solver`. Không tự đo theo cách khác.
 5. **Code có test.** Thêm tính năng thì thêm test trong `tests/`. Chạy `pytest -q` trước khi đề xuất commit.
 6. **Trạng thái phải hashable** (`frozen dataclass`, `frozenset`) và chứa cấu hình cầu đang mở.
 7. **Python 3.10+**, chỉ dùng thư viện chuẩn cho phần lõi. `pytest` và `matplotlib` chỉ dùng cho test và biểu đồ.
@@ -36,11 +42,12 @@ Nếu một yêu cầu mâu thuẫn với các file này: **dừng lại và h�
 
 | Thư mục | Chủ | Ghi chú |
 | --- | --- | --- |
-| `bloxorz/core/` | Thành viên core luật | Người khác chỉ đọc |
-| `bloxorz/search/bfs.py`, `dfs.py` | Thành viên BFS/DFS | |
-| `bloxorz/search/ucs.py`, `astar.py`, `heuristics.py` | Thành viên UCS/A\* | |
-| `bloxorz/server.py`, `benchmark/`, `levels/` | Thành viên tích hợp + màn chơi | |
-| `gui/`, `tests/` | Trưởng nhóm (GUI 3D + unit test) | |
+| `bloxorz/core/` | Trưởng nhóm | Luật đã xong; người khác chỉ đọc |
+| `bloxorz/search/bfs.py` | Thành viên BFS | |
+| `bloxorz/search/dfs.py` | Thành viên DFS | |
+| `bloxorz/search/ucs.py` | Thành viên UCS | |
+| `bloxorz/search/astar.py`, `heuristics.py` | Thành viên A\* | |
+| `bloxorz/server.py`, `benchmark/`, `levels/`, `gui/`, `tests/` | Trưởng nhóm | |
 | `docs/` | Cả nhóm | Sửa luật phải báo |
 
 ## 5. Phong cách code
