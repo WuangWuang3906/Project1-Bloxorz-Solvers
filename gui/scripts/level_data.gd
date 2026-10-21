@@ -14,6 +14,7 @@ var goal := Vector2i.ZERO
 var bridges: Dictionary = {}     # id -> {"cells": Array[Vector2i], "open": bool}
 var bridge_at: Dictionary = {}   # Vector2i -> bridge id
 var switches: Dictionary = {}    # Vector2i -> {"id","type","mode","bridges","split_to"}
+var raw: Dictionary = {}         # the parsed JSON, sent to the Python server on load
 
 
 static func load_file(path: String) -> LevelData:
@@ -26,6 +27,7 @@ static func load_file(path: String) -> LevelData:
 		push_error("Invalid level JSON: %s" % path)
 		return null
 	var lv := LevelData.new()
+	lv.raw = data
 	lv.id = int(data.get("id", 0))
 	lv.level_name = str(data.get("name", ""))
 	lv.group = str(data.get("group", ""))

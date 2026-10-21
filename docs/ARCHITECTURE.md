@@ -69,7 +69,7 @@ def bfs(level, start: State) -> SearchResult: ...
 
 | Godot gửi | Python trả |
 | --- | --- |
-| `{"cmd":"load","path":"levels/level01.json"}` | `{"ok":true,"level":{...},"state":{...}}` |
+| `{"cmd":"load","level":{...JSON màn...}}` (GUI dùng cách này) hoặc `{"cmd":"load","path":"levels/level01.json"}` | `{"ok":true,"level":{...},"state":{...}}` |
 | `{"cmd":"move","action":"R"}` (cả `SWITCH`) | `{"ok":true,"state":{...},"events":["bridge:b1:open"]}` hoặc `{"ok":true,"state":null,"events":["fall"]}` |
 | `{"cmd":"apply","actions":["R","D",...]}` (nhiều nước một lúc, dùng khi bỏ qua phát lại) | `{"ok":true,"state":{...},"events":[...]}` của nước cuối; dừng ở nước rơi đầu tiên (`"state":null`) |
 | `{"cmd":"restart"}` | `{"ok":true,"state":{...}}` |

@@ -8,7 +8,7 @@ Cần **Windows 10/11 64-bit** và **Python 3.10+** trong PATH (đã thử với
 
 1. Tải **`Bloxorz.zip`** (~25 MB) từ link Google Drive trong báo cáo, giải nén ra `Bloxorz.exe` và đặt vào `gui\export\Bloxorz.exe` trong thư mục mã nguồn. Nếu "Extract All" của Windows báo lỗi (file nén kiểu LZMA): dùng 7-Zip/WinRAR hoặc lệnh `tar -xf Bloxorz.zip`.
 2. Nhấp đúp **`gui\export\Bloxorz.exe`** (hoặc `run.bat`). Game **tự bật server Python** ở chế độ nền và tự tắt khi đóng game.
-   - Để `.exe` ở chỗ khác (ví dụ Downloads) vẫn chơi tay được cả 15 màn (đã gói sẵn), nhưng ở chế độ `○ Offline`: các nút giải cần mã nguồn Python bên cạnh.
+   - Để `.exe` ở chỗ khác (ví dụ Downloads): game báo **"Không thấy mã nguồn Python — hãy đọc README, đặt mã nguồn đúng chỗ"**, các nút giải bị khoá (kể cả khi đang có server chạy ở nơi khác); chỉ chơi tay được 15 màn đã gói sẵn.
    - Không muốn dùng `.exe`: chạy `python tools/get_godot.py` (tải Godot 4.7.2, ~86 MB), bật `python -m bloxorz.server`, rồi `tools\godot\Godot_v4.7.2-stable_win64.exe --path gui`.
 3. Trong game: **LEVELS** chọn màn (15 màn, 5 nhóm), mũi tên/WASD để chơi, các nút **BFS / DFS / UCS / A\*** để máy giải và tự lăn tới đích. Khi đang phát lại: **F** tua nhanh, **Esc** nhảy tới cuối.
 4. Góc HUD phải hiện `● Python server`. Nếu hiện `○ Offline`: kiểm tra `.exe` nằm đúng `gui\export\` của mã nguồn và lệnh `python` chạy được, hoặc tự bật `python -m bloxorz.server`, rồi bấm RESTART.

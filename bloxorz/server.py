@@ -11,7 +11,7 @@ import socketserver
 import sys
 
 from bloxorz.core import rules
-from bloxorz.core.level import Level, load_level
+from bloxorz.core.level import Level, load_level, parse_level
 from bloxorz.core.state import State
 from bloxorz.search import ALGORITHMS
 from bloxorz.search.common import run_solver
@@ -27,7 +27,9 @@ class Session:
     def handle(self, msg: dict) -> dict:
         cmd = msg.get("cmd")
         if cmd == "load":
-            self.level = load_level(msg["path"])
+            # "level" = the JSON the GUI itself shows, so both sides solve the same board;
+            # "path" = a level file relative to the server's folder.
+            self.level = parse_level(msg["level"]) if "level" in msg else load_level(msg["path"])
             self.state = rules.initial_state(self.level)
             return {"ok": True, "state": self.state.to_json()}
         if self.level is None:

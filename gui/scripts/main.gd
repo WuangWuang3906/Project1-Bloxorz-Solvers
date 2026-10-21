@@ -74,9 +74,12 @@ func _ready() -> void:
 
 	_find_levels()
 	var args := _cmd_args()
-	online = await net.try_connect()
-	if not online:
-		online = await _start_server()
+	# Solvers only work with the source next to the game (README); otherwise
+	# stay offline, even if some other server happens to be running.
+	if _has_source():
+		online = await net.try_connect()
+		if not online:
+			online = await _start_server()
 	ui.set_mode(online)
 	await _load_level(int(args.get("level", "0")))
 	if args.has("yaw"):
@@ -86,8 +89,6 @@ func _ready() -> void:
 	if args.has("zoom"):
 		cam_zoom = float(args["zoom"])
 	_snap_camera()
-	if not online and not _has_source():
-		ui.set_status(NO_SOURCE_MSG)
 	if args.is_empty() or args.has("select"):
 		ui.show_level_select()
 	if args.has("screenshot"):
@@ -234,7 +235,7 @@ func _find_levels() -> void:
 
 
 func _load_level(index: int) -> void:
-	if not online and not replaying:   # server may have been started after the game
+	if not online and not replaying and _has_source():   # server may have been started after the game
 		online = await net.try_connect(0.3)
 		ui.set_mode(online)
 	if level_files.is_empty():
@@ -245,10 +246,9 @@ func _load_level(index: int) -> void:
 	board.build(level)
 	state = OfflineRules.initial_state(level)
 	if online:
-		var path: String = level_files[level_index]
-		if path.begins_with("res://"):   # packed copy: let the server use its own levels/
-			path = "levels/" + path.get_file()
-		var r := await net.request({"cmd": "load", "path": path})
+		# Send the level itself, not a file name: a server started from another
+		# (older) copy of the repo would otherwise solve a different board.
+		var r := await net.request({"cmd": "load", "level": level.raw})
 		if r.get("ok", false):
 			state = NetClient.state_from_json(r["state"])
 		else:
@@ -258,7 +258,10 @@ func _load_level(index: int) -> void:
 	moves = 0
 	ui.set_moves(0)
 	ui.set_title("BLOXORZ · %02d  %s" % [level.id, level.level_name])
-	ui.set_status("Mũi tên/WASD lăn · Tab đổi khối · kéo chuột xoay · cuộn để zoom · R chơi lại")
+	if _has_source():
+		ui.set_status("Mũi tên/WASD lăn · Tab đổi khối · kéo chuột xoay · cuộn để zoom · R chơi lại")
+	else:
+		ui.set_status(NO_SOURCE_MSG)
 	_place_camera()
 
 
@@ -357,7 +360,11 @@ func _do_move(action: String) -> bool:
 		events = res["events"]
 
 	if not await _animate(prev, next, action):
-		ui.set_status("Rơi rồi! Chơi lại màn.")
+		if replaying:
+			ui.set_status("Lời giải không khớp màn này — server Python có thể là bản cũ: tắt nó và mở lại game")
+			await get_tree().create_timer(3.0).timeout
+		else:
+			ui.set_status("Rơi rồi! Chơi lại màn.")
 		await _load_level(level_index)
 		return false
 	state = next
@@ -416,6 +423,9 @@ func _support_flags(cs: Array, standing: bool, open: Dictionary) -> Array:
 func _solve(algo: String) -> void:
 	if busy:
 		return
+	if not _has_source():
+		ui.set_status(NO_SOURCE_MSG)
+		return
 	busy = true
 	var result: Dictionary = {}
 	await _load_level(level_index)   # also retries the server if offline
@@ -432,8 +442,6 @@ func _solve(algo: String) -> void:
 		var path := repo_dir.path_join("results/sample/level%02d_%s.json" % [level.id, algo])
 		if FileAccess.file_exists(path):
 			result = JSON.parse_string(FileAccess.get_file_as_string(path))
-		elif not _has_source():
-			ui.set_status(NO_SOURCE_MSG)
 		else:
 			ui.set_status("Offline: chưa bật được server Python (lệnh python có chạy được không?) — xem README")
 	if not result.is_empty():

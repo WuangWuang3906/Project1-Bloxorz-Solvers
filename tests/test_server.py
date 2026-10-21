@@ -16,3 +16,11 @@ def test_apply_stops_at_a_fall():
     s.handle({"cmd": "load", "path": str(LEVELS / "level01.json")})
     r = s.handle({"cmd": "apply", "actions": ["U", "U", "U"]})
     assert r["ok"] and r["state"] is None and "fall" in r["events"]
+
+
+def test_load_accepts_level_json_from_the_gui():
+    import json
+    data = json.loads((LEVELS / "level14.json").read_text(encoding="utf-8"))
+    s = Session()
+    r = s.handle({"cmd": "load", "level": data})
+    assert r["ok"] and s.level.id == 14
