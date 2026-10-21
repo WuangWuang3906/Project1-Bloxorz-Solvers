@@ -25,7 +25,7 @@ const DEFAULT_PITCH := 55.0
 const CAM_FOV := 34.0
 const REPLAY_SPEEDS := [1.0, 4.0, 16.0]
 
-var repo_dir: String = ProjectSettings.globalize_path("res://").path_join("..").simplify_path()
+var repo_dir: String = _find_repo_dir()
 var level_files: Array = []
 var level_index: int = 0
 var level: LevelData
@@ -170,6 +170,19 @@ func _place_camera() -> void:
 
 
 # ---- levels ------------------------------------------------------------
+
+## Repo root = the folder that holds levels/. In the editor it is the parent of
+## gui/; in the exported .exe it is searched upward from the .exe's folder.
+static func _find_repo_dir() -> String:
+	if OS.has_feature("editor"):
+		return ProjectSettings.globalize_path("res://").path_join("..").simplify_path()
+	var dir := OS.get_executable_path().get_base_dir()
+	for i in 4:
+		if DirAccess.dir_exists_absolute(dir.path_join("levels")):
+			return dir
+		dir = dir.get_base_dir()
+	return OS.get_executable_path().get_base_dir()
+
 
 func _find_levels() -> void:
 	var dir := repo_dir.path_join("levels")

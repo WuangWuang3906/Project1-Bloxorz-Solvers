@@ -1,4 +1,7 @@
-"""Heuristics for A*. Owner: Pham Nguyen Quang*.
+"""Heuristics for A*. Owner: Pham Nguyen Quang Sang.
+
+default_heuristic is admissible (never above the true remaining cost) but not
+consistent on some split-level edges; astar.py reopens states, so A* stays optimal.
 """
 from __future__ import annotations
 
@@ -12,13 +15,11 @@ def zero(level: Level, state: State) -> float:
 
 
 def default_heuristic(level: Level, state: State) -> float:
+    """Manhattan distance from the block cell nearest the goal, divided by 2,
+    plus 0.5 when the block is not standing.
     """
-    Rules: Use mahattan /2 
-    Add more if orientation != standing
-    """
-    goal_pos = level.goal 
-    
-    
+    goal_pos = level.goal
+
     r, c = state.pos
     if state.orient == STAND:
         # occupy (r, c)
@@ -40,18 +41,15 @@ def default_heuristic(level: Level, state: State) -> float:
         d2 = abs(c2[0] - goal_pos[0]) + abs(c2[1] - goal_pos[1])
         min_dist = min(d1, d2)
     else:
-        # temporary val -> avoid of crashing program
+        # fallback so an unexpected state never crashes the search
         min_dist = abs(r - goal_pos[0]) + abs(c - goal_pos[1])
-    """
-    ensure admissible attribute: mahattan is the fastest way with velocity = 1
-    , but rectangular box can have velocity = 2 if its in V, H states
-    """
+
+    # Admissible: one action moves the nearest cell at most 2 squares closer
+    # (a lying block rolls 2 cells at once) and every action costs >= 1.
     h_val = min_dist / 2.0
-    
-    # In case, rectangular box is nearby goal but is not stand -> can not finish in one step
-    # Add a little punishment
+
+    # A block that is not standing needs at least one more action to stand on the goal.
     if state.orient != STAND:
         h_val += 0.5
-        
-    return h_val
 
+    return h_val

@@ -1,4 +1,10 @@
 """A* Search. Owner: Pham Nguyen Quang Sang.
+
+Frontier ordered by f = g + h (heapq; ties broken by smaller h, then insertion order).
+- Complete: yes on a finite state space (every action costs >= 1).
+- Optimal: yes when h is admissible. h is not consistent everywhere, so a state is
+  pushed again whenever a cheaper path to it is found (best_cost), no closed set.
+- Time/space: O(b^d) in the worst case like UCS; a good h expands fewer nodes.
 """
 from __future__ import annotations
 
