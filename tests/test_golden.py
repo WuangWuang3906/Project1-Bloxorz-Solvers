@@ -29,6 +29,8 @@ GOLDEN = {
     "level18.json": ["R", "R", "D", "U", "D", "D", "R", "R", "R", "R", "SWITCH", "D", "U"],
     "level19.json": ["R", "U", "L", "D", "L", "U", "R", "D", "R", "D", "R", "R", "R", "R", "U"],
     "level20.json": ["R", "U", "L", "D", "R", "R", "R", "R", "R", "R", "R", "U", "L", "D", "R", "L", "U", "R", "D", "R", "U", "L", "D", "R", "R", "R", "R", "R", "R", "R", "R", "D", "L"],
+    "level21.json": ["R", "U", "L", "D", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "U", "L", "D", "R"],
+    "level22.json": ["D", "L", "U", "R", "D", "D", "D", "D", "D", "D", "D", "D", "D", "D", "L", "U", "R", "D"],
 }
 
 
