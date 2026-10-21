@@ -89,7 +89,8 @@ def main() -> None:
     p = argparse.ArgumentParser(prog="python -m bloxorz.server")
     p.add_argument("--port", type=int, default=5555)
     args = p.parse_args()
-    sys.stdout.reconfigure(errors="replace")  # Windows consoles may not be UTF-8
+    if sys.stdout is not None:  # None when the game starts us without a console
+        sys.stdout.reconfigure(errors="replace")  # Windows consoles may not be UTF-8
     with Server(("127.0.0.1", args.port), Handler) as srv:
         print(f"Bloxorz server on 127.0.0.1:{args.port} (Ctrl+C to stop)", flush=True)
         try:

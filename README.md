@@ -6,11 +6,12 @@ Game Bloxorz 3D (Godot 4) và 4 thuật toán tìm kiếm tự cài bằng Pytho
 
 Cần **Windows 10/11 64-bit** và **Python 3.10+** trong PATH (đã thử với 3.13). Phần luật và thuật toán chỉ dùng thư viện chuẩn.
 
-1. Tải **`Bloxorz.exe`** (~105 MB) từ link Google Drive trong báo cáo, đặt vào `gui\export\Bloxorz.exe`.
-2. Nhấp đúp **`run.bat`** ở thư mục gốc: mở cửa sổ server Python, rồi mở game 3D.
-   Không muốn tải `.exe`: chạy `python tools/get_godot.py` (tải Godot 4.7.2, ~86 MB) rồi `tools\godot\Godot_v4.7.2-stable_win64.exe --path gui` sau khi đã bật `python -m bloxorz.server`.
+1. Tải **`Bloxorz.zip`** (~25 MB) từ link Google Drive trong báo cáo, giải nén ra `Bloxorz.exe` và đặt vào `gui\export\Bloxorz.exe` trong thư mục mã nguồn. Nếu "Extract All" của Windows báo lỗi (file nén kiểu LZMA): dùng 7-Zip/WinRAR hoặc lệnh `tar -xf Bloxorz.zip`.
+2. Nhấp đúp **`gui\export\Bloxorz.exe`** (hoặc `run.bat`). Game **tự bật server Python** ở chế độ nền và tự tắt khi đóng game.
+   - Để `.exe` ở chỗ khác (ví dụ Downloads) vẫn chơi tay được cả 15 màn (đã gói sẵn), nhưng ở chế độ `○ Offline`: các nút giải cần mã nguồn Python bên cạnh.
+   - Không muốn dùng `.exe`: chạy `python tools/get_godot.py` (tải Godot 4.7.2, ~86 MB), bật `python -m bloxorz.server`, rồi `tools\godot\Godot_v4.7.2-stable_win64.exe --path gui`.
 3. Trong game: **LEVELS** chọn màn (15 màn, 5 nhóm), mũi tên/WASD để chơi, các nút **BFS / DFS / UCS / A\*** để máy giải và tự lăn tới đích. Khi đang phát lại: **F** tua nhanh, **Esc** nhảy tới cuối.
-4. Góc HUD phải hiện `● Python server`. Nếu hiện `○ Offline`: kiểm tra cửa sổ server còn chạy, rồi bấm RESTART.
+4. Góc HUD phải hiện `● Python server`. Nếu hiện `○ Offline`: kiểm tra `.exe` nằm đúng `gui\export\` của mã nguồn và lệnh `python` chạy được, hoặc tự bật `python -m bloxorz.server`, rồi bấm RESTART.
 
 Không cần GUI: `python -m bloxorz solve levels/level01.json --algo astar` (xem bảng "Chạy" bên dưới). Chạy lại toàn bộ thí nghiệm: `pip install -r requirements.txt` rồi `python benchmark/run_benchmark.py` (~3 phút) và `python benchmark/plot_results.py`.
 
@@ -55,10 +56,10 @@ python -m bloxorz show levels/level01.json
 
 ```bash
 python tools/get_godot.py --templates
-tools\godot\Godot_v4.7.2-stable_win64_console.exe --headless --path gui --export-release "Windows Desktop" export/Bloxorz.exe
+python tools/build_exe.py
 ```
 
-Lệnh 1 tải Godot và export templates (~1 GB, chỉ giữ 2 file Windows vào `tools/godot/templates/`, không commit). Lệnh 2 tạo `gui/export/Bloxorz.exe` (một file, đã gói sẵn dữ liệu). Thư mục `gui/export/` không commit. Khi nộp: zip chính (mã nguồn + báo cáo) không kèm `.exe`; `.exe` để riêng trên Google Drive, link ghi trong báo cáo. File `.exe` tự tìm thư mục `levels/` ở các thư mục cha, nên phải để nguyên cấu trúc repo.
+Lệnh 1 tải Godot và export templates (~1 GB, chỉ giữ 2 file Windows vào `tools/godot/templates/`, không commit). Lệnh 2 gói 15 màn vào game, tạo `gui/export/Bloxorz.exe` (một file) và `gui/export/Bloxorz.zip` (~25 MB, để tải lên Drive). Godot cài ở chỗ khác thì đặt biến `GODOT` trỏ tới file `..._console.exe`. Thư mục `gui/export/` không commit. Khi nộp: zip chính (mã nguồn + báo cáo) không kèm `.exe`; `.exe` để riêng trên Google Drive, link ghi trong báo cáo. File `.exe` tự tìm mã nguồn (`bloxorz/server.py`) ở các thư mục cha để bật server.
 
 ## Tham khảo
 

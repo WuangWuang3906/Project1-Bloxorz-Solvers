@@ -58,7 +58,9 @@ func _ready() -> void:
 	_status = _label("", 18, Color.WHITE, 8)
 	_status.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
 	_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_status.offset_top = -48
+	_status.offset_top = -86   # room for two lines
+	_status.offset_bottom = -14
+	_status.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	_status.offset_left = -500
 	_status.offset_right = 500
 	add_child(_status)

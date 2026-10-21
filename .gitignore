@@ -9,6 +9,7 @@ venv/
 tools/godot/
 gui/.godot/
 gui/export/
+gui/levels/
 *.import.tmp
 
 # Results (keep hand-written samples)

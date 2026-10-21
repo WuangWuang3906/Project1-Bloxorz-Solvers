@@ -24,6 +24,7 @@ const DEFAULT_YAW := -19.0
 const DEFAULT_PITCH := 55.0
 const CAM_FOV := 34.0
 const REPLAY_SPEEDS := [1.0, 4.0, 16.0]
+const NO_SOURCE_MSG := "Không thấy mã nguồn Python — hãy đọc README, đặt mã nguồn đúng chỗ\n(Bloxorz.exe trong gui\\export\\ của thư mục mã nguồn) để dùng các thuật toán"
 
 var repo_dir: String = _find_repo_dir()
 var level_files: Array = []
@@ -37,6 +38,7 @@ var replaying: bool = false
 var replay_speed: int = 0          # index in REPLAY_SPEEDS
 var skip_requested: bool = false
 var solving: bool = false
+var _server_pid: int = -1          # Python server started by the game itself
 
 var cam_yaw: float = DEFAULT_YAW
 var cam_pitch: float = DEFAULT_PITCH
@@ -73,6 +75,8 @@ func _ready() -> void:
 	_find_levels()
 	var args := _cmd_args()
 	online = await net.try_connect()
+	if not online:
+		online = await _start_server()
 	ui.set_mode(online)
 	await _load_level(int(args.get("level", "0")))
 	if args.has("yaw"):
@@ -82,10 +86,38 @@ func _ready() -> void:
 	if args.has("zoom"):
 		cam_zoom = float(args["zoom"])
 	_snap_camera()
+	if not online and not _has_source():
+		ui.set_status(NO_SOURCE_MSG)
 	if args.is_empty() or args.has("select"):
 		ui.show_level_select()
 	if args.has("screenshot"):
 		_run_script(args)
+
+
+## No server running but the Python code is next to the game (repo layout):
+## start `python -m bloxorz.server` in the background and connect to it.
+func _start_server() -> bool:
+	if not _has_source():
+		return false
+	OS.set_environment("PYTHONPATH", repo_dir)
+	_server_pid = OS.create_process("python", ["-m", "bloxorz.server"])
+	if _server_pid <= 0:
+		return false
+	ui.set_status("Đang bật server Python...")
+	for i in 20:   # Python needs a moment to start
+		await get_tree().create_timer(0.25).timeout
+		if await net.try_connect(0.3):
+			return true
+	return false
+
+
+func _has_source() -> bool:
+	return FileAccess.file_exists(repo_dir.path_join("bloxorz/server.py"))
+
+
+func _exit_tree() -> void:
+	if _server_pid > 0:
+		OS.kill(_server_pid)
 
 
 # ---- world & camera ----------------------------------------------------
@@ -171,14 +203,15 @@ func _place_camera() -> void:
 
 # ---- levels ------------------------------------------------------------
 
-## Repo root = the folder that holds levels/. In the editor it is the parent of
-## gui/; in the exported .exe it is searched upward from the .exe's folder.
+## Repo root = the folder with bloxorz/server.py and levels/. In the editor it is
+## the parent of gui/; the exported .exe searches upward from its own folder.
+## Not found (e.g. .exe alone in Downloads): the packed levels are used, offline.
 static func _find_repo_dir() -> String:
 	if OS.has_feature("editor"):
 		return ProjectSettings.globalize_path("res://").path_join("..").simplify_path()
 	var dir := OS.get_executable_path().get_base_dir()
 	for i in 4:
-		if DirAccess.dir_exists_absolute(dir.path_join("levels")):
+		if FileAccess.file_exists(dir.path_join("bloxorz/server.py")):
 			return dir
 		dir = dir.get_base_dir()
 	return OS.get_executable_path().get_base_dir()
@@ -186,6 +219,8 @@ static func _find_repo_dir() -> String:
 
 func _find_levels() -> void:
 	var dir := repo_dir.path_join("levels")
+	if not DirAccess.dir_exists_absolute(dir):
+		dir = "res://levels"   # copies packed into the .exe (tools/build_exe.py)
 	for f in DirAccess.get_files_at(dir):
 		if f.begins_with("level") and f.ends_with(".json"):
 			level_files.append(dir.path_join(f))
@@ -203,15 +238,17 @@ func _load_level(index: int) -> void:
 		online = await net.try_connect(0.3)
 		ui.set_mode(online)
 	if level_files.is_empty():
-		ui.set_status("Không tìm thấy màn chơi trong levels/")
+		ui.set_status("Không tìm thấy màn chơi (thư mục levels/)")
 		return
 	level_index = clampi(index, 0, level_files.size() - 1)
 	level = LevelData.load_file(level_files[level_index])
 	board.build(level)
 	state = OfflineRules.initial_state(level)
 	if online:
-		var rel: String = "levels/" + level_files[level_index].get_file()
-		var r := await net.request({"cmd": "load", "path": rel})
+		var path: String = level_files[level_index]
+		if path.begins_with("res://"):   # packed copy: let the server use its own levels/
+			path = "levels/" + path.get_file()
+		var r := await net.request({"cmd": "load", "path": path})
 		if r.get("ok", false):
 			state = NetClient.state_from_json(r["state"])
 		else:
@@ -395,8 +432,10 @@ func _solve(algo: String) -> void:
 		var path := repo_dir.path_join("results/sample/level%02d_%s.json" % [level.id, algo])
 		if FileAccess.file_exists(path):
 			result = JSON.parse_string(FileAccess.get_file_as_string(path))
+		elif not _has_source():
+			ui.set_status(NO_SOURCE_MSG)
 		else:
-			ui.set_status("Offline: chưa có server Python và chưa có file mẫu %s" % path.get_file())
+			ui.set_status("Offline: chưa bật được server Python (lệnh python có chạy được không?) — xem README")
 	if not result.is_empty():
 		ui.set_metrics(algo, result.get("metrics", {}))
 		if not result.get("found", false):
