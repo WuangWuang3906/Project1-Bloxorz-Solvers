@@ -19,11 +19,14 @@ def ucs(level: Level, start: State) -> SearchResult:
     if rules.is_goal(level, start):
         return SearchResult(found=True, actions=[], cost=0.0, expanded=0)
 
+    # Tie-breaker counter để tránh so sánh trực tiếp State khi cost bằng nhau
     counter = count()
     frontier: list[tuple[float, int, State]] = [(0.0, next(counter), start)]
     
+    # best_cost lưu chi phí đường đi g(s) thấp nhất từng tìm thấy tới state
     best_cost: dict[State, float] = {start: 0.0}
     
+    # parent[s] = (prev_state, action) để dựng lại đường đi bằng common.reconstruct
     parent: dict[State, tuple[State, str] | None] = {start: None}
     
     expanded = 0
@@ -31,9 +34,11 @@ def ucs(level: Level, start: State) -> SearchResult:
     while frontier:
         g, _, current = heapq.heappop(frontier)
 
+        # Bỏ qua nếu đã tìm thấy đường đi rẻ hơn tới current trước đó
         if g > best_cost.get(current, float("inf")):
             continue
 
+        # Kiểm tra Goal khi nút được pop ra khỏi frontier
         if rules.is_goal(level, current):
             actions = reconstruct(parent, current)
             return SearchResult(found=True, actions=actions, cost=g, expanded=expanded)
