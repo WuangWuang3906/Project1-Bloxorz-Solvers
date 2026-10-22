@@ -49,6 +49,7 @@ python -m bloxorz show levels/level01.json
 | Server cho GUI | `python -m bloxorz.server --port 5555` |
 | Đo đạc (không mở GUI) | `python benchmark/run_benchmark.py` → `results/benchmark.csv`, `results/summary.md` |
 | Vẽ biểu đồ | `python benchmark/plot_results.py` → `results/figures/*.png` |
+| Thử trọng số ô dễ vỡ (lý do chọn 2) | `python benchmark/cost_weights.py` → `results/cost_weights.md` (xem `docs/GAME_RULES.md` mục 6) |
 | GUI (bản xuất) | `run.bat`, hoặc tự bật server rồi mở `gui\export\Bloxorz.exe` |
 | GUI (mã nguồn) | Mở `gui/project.godot` bằng **Godot 4.7.2** (xem [gui/README.md](gui/README.md)) |
 

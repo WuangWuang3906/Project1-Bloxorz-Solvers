@@ -72,6 +72,29 @@ Trong solver, nước đi không hợp lệ đơn giản là **không sinh ra tr
 
 Mọi chi phí ≥ 1, nên mọi heuristic đếm cận dưới số nước (ví dụ Manhattan/2) vẫn **admissible** theo hàm chi phí này. BFS và IDS tối ưu theo **số action**, không phải theo chi phí.
 
+### Vì sao trọng số ô dễ vỡ là 2 (FAQ lớp, câu 10: trọng số phải có lý do)
+
+**Ý nghĩa:** khối nằm trên ô dễ vỡ là trạng thái rủi ro: chỉ một nước dựng đứng sai là vỡ ô và thua. Chi phí phạt mức rủi ro đó, nên UCS/A\* ưu tiên đường an toàn khi đường an toàn không quá dài.
+
+**Thí nghiệm** (`python benchmark/cost_weights.py`, chạy UCS với trọng số w = 1; 1,5; 2; 3; 5; 10, luật khác giữ nguyên). Mỗi ô: *độ dài lời giải / số nước kết thúc trên ô dễ vỡ*.
+
+| Màn | w = 1 | w = 1,5 | **w = 2** | w = 3 | w = 5 | w = 10 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 04 Thin ice | 17 / 4 | 17 / 4 | **17 / 4** | 17 / 4 | 17 / 4 | 17 / 4 |
+| 05 Fragile maze | 16 / 7 | 16 / 7 | **16 / 7** | 16 / 7 | 16 / 7 | 22 / 6 |
+| 06 Safe detour | 21 / 14 | 21 / 14 | **26 / 4** | 26 / 4 | 26 / 4 | 26 / 4 |
+| 12 Grand finale | 33 / 2 | 33 / 2 | **33 / 2** | 34 / 1 | 34 / 1 | 34 / 1 |
+| 13, 15 (màn lớn) | lời giải không đi qua ô dễ vỡ ở mọi w; chỉ số nút duyệt thay đổi | | | | | |
+
+**Đọc kết quả:**
+
+- w = 1 chính là BFS (ít nước nhất): màn 06 đi thẳng qua 14 nước trên ô dễ vỡ.
+- Màn 06 có hai đường: đi thẳng (21 nước, 14 nước trên ô dễ vỡ, chi phí 7 + 14w) và đi vòng (26 nước, 4 nước trên ô dễ vỡ, chi phí 22 + 4w). Hai đường **bằng nhau khi w = 1,5**; từ **w = 2** UCS chọn hẳn đường vòng: thêm 5 nước để bớt 10 nước rủi ro.
+- w = 3 bắt đầu "đắt" hơn cần thiết: màn 12 thêm 1 nước chỉ để bớt 1 nước trên ô dễ vỡ. w = 10 quá thận trọng: màn 05 dài thêm 6 nước (16 → 22, +37%) để bớt 1 nước rủi ro.
+- Màn 04, 05 bắt buộc phải đi qua ô dễ vỡ, nên trọng số chỉ đổi chi phí, không đổi đường đi ở mức vừa phải.
+
+**Kết luận:** w = 2 là **số nguyên nhỏ nhất** làm UCS tránh vùng rủi ro khi có đường vòng ngắn (màn 06), mà **không làm dài** lời giải ở các màn khác (04, 05, 12 giữ nguyên đường ngắn nhất). Lưu ý trung thực: màn 06 do nhóm thiết kế để minh hoạ UCS khác BFS, nên ngưỡng 1,5 phụ thuộc màn đó; xu hướng chung (w càng lớn càng né ô dễ vỡ và đường càng dài) thấy ở cả 05 và 12.
+
 ## 7. Độ dài lời giải
 
 `length` = số action, tính cả `SWITCH`.
