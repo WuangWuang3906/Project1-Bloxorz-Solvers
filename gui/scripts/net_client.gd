@@ -31,8 +31,26 @@ func try_connect(timeout: float = 0.6) -> bool:
 	return false
 
 
-## Send one request and wait for its reply. Returns {} if the connection drops.
-func request(msg: Dictionary) -> Dictionary:
+## main.gd bumps this on Restart / new level / new solve.
+var epoch: int = 0
+var _in_flight: bool = false
+
+
+## Send one request and wait for its reply. Returns {} if the connection drops,
+## {"stale": true} if the game moved on (epoch changed) before it could be sent.
+## Only one request is on the wire at a time, so replies cannot be mixed up.
+func request(msg: Dictionary, ep: int = -1) -> Dictionary:
+	while _in_flight:
+		await get_tree().process_frame
+	if ep >= 0 and ep != epoch:
+		return {"stale": true}
+	_in_flight = true
+	var reply := await _send(msg)
+	_in_flight = false
+	return reply
+
+
+func _send(msg: Dictionary) -> Dictionary:
 	if not connected:
 		return {}
 	var err := _tcp.put_data((JSON.stringify(msg) + "\n").to_utf8_buffer())

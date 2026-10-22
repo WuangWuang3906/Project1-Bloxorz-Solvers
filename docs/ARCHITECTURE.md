@@ -73,7 +73,10 @@ def bfs(level, start: State) -> SearchResult: ...
 | `{"cmd":"move","action":"R"}` (cả `SWITCH`) | `{"ok":true,"state":{...},"events":["bridge:b1:open"]}` hoặc `{"ok":true,"state":null,"events":["fall"]}` |
 | `{"cmd":"apply","actions":["R","D",...]}` (nhiều nước một lúc, dùng khi bỏ qua phát lại) | `{"ok":true,"state":{...},"events":[...]}` của nước cuối; dừng ở nước rơi đầu tiên (`"state":null`) |
 | `{"cmd":"restart"}` | `{"ok":true,"state":{...}}` |
-| `{"cmd":"solve","algo":"astar"}` | `{"ok":true,"result":{...}}` (dạng file kết quả trong JSON_FORMAT) |
+| `{"cmd":"solve","algo":"astar"}` | `{"ok":true,"result":{...}}` (dạng file kết quả trong JSON_FORMAT). Chặn tới khi giải xong; dùng cho CLI/test |
+| `{"cmd":"solve_start","algo":"bfs"}` | `{"ok":true}` ngay. Solver chạy ở tiến trình phụ (`bloxorz/solve_job.py`), server vẫn trả lời các lệnh khác |
+| `{"cmd":"solve_poll"}` | `{"ok":true,"phase":"solving"/"measuring"/"done"/"error"/"idle","result":{...}/null,"error":...}`. `measuring` = đã có lời giải và thời gian, `peak_kb` còn `null` (đang đo bộ nhớ bằng tracemalloc). Thêm `"progress"` (số nút đã mở rộng tới giờ) và `"total"` (số trạng thái đi tới được của màn, từ `bloxorz/data/state_counts.json`, `null` nếu chưa đếm) |
+| `{"cmd":"solve_cancel"}` | `{"ok":true}`; huỷ solver đang chạy. `load`/`restart` cũng tự huỷ |
 | lỗi | `{"ok":false,"error":"..."}` |
 
 Khi nhận `result`, Godot gửi lần lượt từng `move` để vừa có hoạt ảnh vừa kiểm chứng.
@@ -85,3 +88,4 @@ GUI đang dùng giao thức này như sau (đã cài trong `gui/scripts/net_clie
 - `move` hợp lệ: trả `state` mới. Khối rơi: trả `"state": null` và có `"fall"` trong `events`.
 - GUI không gửi `move` đè lên cube kia và không gửi `SWITCH` khi chưa tách.
 - `solve` giải từ **trạng thái đầu** của màn đang load; trả `result` đúng định dạng file kết quả.
+- GUI dùng `solve_start` + `solve_poll` (mỗi 0,15 s), bắt đầu phát lại khi `phase` = `measuring`, rồi điền Peak mem khi `done`. Mỗi lần Restart/đổi màn/bấm thuật toán khác, GUI tăng một số "epoch": việc của epoch cũ (chờ giải, phát lại, hoạt ảnh, request chưa gửi) bị bỏ. `net_client.gd` chỉ cho **một request** chạy một lúc để không lẫn câu trả lời.

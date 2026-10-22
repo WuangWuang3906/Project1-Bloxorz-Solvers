@@ -5,9 +5,14 @@ extends Node3D
 ## when it is running; otherwise from OfflineRules (temporary) and Solve
 ## replays files in results/sample/.
 ##
-## Controls: arrows/WASD roll, Tab/Space switch cube, R restart,
-## mouse drag rotate camera, wheel zoom, Q/E rotate 90°, Home reset camera.
+## Controls: arrow keys roll, Tab/Space switch cube, R restart, F11 full screen,
+## mouse drag rotate camera, wheel zoom, PageUp/PageDown rotate 90°, Home reset camera.
+## No WASD/Q/E: Vietnamese input tools (Unikey, Telex) rewrite letter keys.
 ## While a solution replays: F fast-forward (x1/x4/x16), Esc skip to the end.
+##
+## Restart, New game, choosing a level or pressing a solver button starts a new
+## "epoch": the running solve, replay and animations of the old one stop at once
+## (every coroutine checks `ep != _epoch` after each await and quits quietly).
 ##
 ## Command line (for automated checks), after `--`:
 ##   --level=N         start at level index N (0-based); skips the level screen
@@ -16,6 +21,9 @@ extends Node3D
 ##   --yaw=DEG --pitch=DEG --zoom=F   camera override
 ##   --solve=ALGO      press a Solve button first
 ##   --skip-at=SEC     press Esc SEC seconds into the replay
+##   --restart-at=SEC  press R SEC seconds after the solve button
+##   --help            open the how-to-play board
+##   --shot-during=SEC take the screenshot SEC seconds after the solve button, then quit
 ##   --goal=ring|plain   goal look
 ##   --select          open the level screen
 ##   --screenshot=P    save a PNG to P, then quit
@@ -38,6 +46,7 @@ var replaying: bool = false
 var replay_speed: int = 0          # index in REPLAY_SPEEDS
 var skip_requested: bool = false
 var solving: bool = false
+var _epoch: int = 0
 var _server_pid: int = -1          # Python server started by the game itself
 
 var cam_yaw: float = DEFAULT_YAW
@@ -67,9 +76,9 @@ func _ready() -> void:
 	add_child(ui)
 	net = NetClient.new()
 	add_child(net)
-	ui.new_game_pressed.connect(func() -> void: _load_level(0))
-	ui.restart_pressed.connect(func() -> void: _load_level(level_index))
-	ui.level_selected.connect(_load_level)
+	ui.new_game_pressed.connect(func() -> void: _restart(0))
+	ui.restart_pressed.connect(func() -> void: _restart(level_index))
+	ui.level_selected.connect(_restart)
 	ui.solve_pressed.connect(_solve)
 
 	_find_levels()
@@ -104,11 +113,13 @@ func _start_server() -> bool:
 	_server_pid = OS.create_process("python", ["-m", "bloxorz.server"])
 	if _server_pid <= 0:
 		return false
-	ui.set_status("Đang bật server Python...")
+	ui.show_loading("ĐANG KHỞI ĐỘNG", "Đang bật server Python...")
 	for i in 20:   # Python needs a moment to start
 		await get_tree().create_timer(0.25).timeout
 		if await net.try_connect(0.3):
+			ui.hide_loading()
 			return true
+	ui.hide_loading()
 	return false
 
 
@@ -234,10 +245,32 @@ func _find_levels() -> void:
 	ui.set_levels(infos)
 
 
+## Drop whatever is running (solve, replay, animation) and start a new epoch.
+func _new_epoch() -> void:
+	_epoch += 1
+	net.epoch = _epoch
+	busy = false
+	replaying = false
+	solving = false
+	skip_requested = false
+	Engine.time_scale = 1.0
+	block.stop_all()
+	ui.hide_loading()
+
+
+## Restart / New game / level chosen: stop everything, then load the level.
+func _restart(index: int) -> void:
+	_new_epoch()
+	await _load_level(index)
+
+
 func _load_level(index: int) -> void:
+	var ep := _epoch
 	if not online and not replaying and _has_source():   # server may have been started after the game
 		online = await net.try_connect(0.3)
 		ui.set_mode(online)
+		if ep != _epoch:
+			return
 	if level_files.is_empty():
 		ui.set_status("Không tìm thấy màn chơi (thư mục levels/)")
 		return
@@ -248,7 +281,9 @@ func _load_level(index: int) -> void:
 	if online:
 		# Send the level itself, not a file name: a server started from another
 		# (older) copy of the repo would otherwise solve a different board.
-		var r := await net.request({"cmd": "load", "level": level.raw})
+		var r := await net.request({"cmd": "load", "level": level.raw}, ep)
+		if ep != _epoch or r.has("stale"):
+			return
 		if r.get("ok", false):
 			state = NetClient.state_from_json(r["state"])
 		else:
@@ -259,7 +294,7 @@ func _load_level(index: int) -> void:
 	ui.set_moves(0)
 	ui.set_title("BLOXORZ · %02d  %s" % [level.id, level.level_name])
 	if _has_source():
-		ui.set_status("Mũi tên/WASD lăn · Tab đổi khối · kéo chuột xoay · cuộn để zoom · R chơi lại")
+		ui.set_status("")   # controls are in the "?" board, keep the screen clean
 	else:
 		ui.set_status(NO_SOURCE_MSG)
 	_place_camera()
@@ -275,6 +310,10 @@ func _go_offline(reply: Dictionary) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if ui.is_level_select_open():
+		return
+	if ui.is_help_open():
+		if event is InputEventKey and event.pressed and event.keycode in [KEY_ESCAPE, KEY_ENTER, KEY_SPACE]:
+			ui.hide_help()
 		return
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
@@ -292,6 +331,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
+	if event.keycode == KEY_F11:
+		var full := DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if full else DisplayServer.WINDOW_MODE_FULLSCREEN)
+		return
+	if event.keycode == KEY_R:   # works during a solve or a replay too
+		_restart(level_index)
+		return
 	if replaying:
 		if event.keycode == KEY_F:
 			replay_speed = (replay_speed + 1) % REPLAY_SPEEDS.size()
@@ -301,21 +347,19 @@ func _unhandled_input(event: InputEvent) -> void:
 			skip_requested = true
 		return
 	match event.keycode:
-		KEY_UP, KEY_W:
+		KEY_UP:
 			_try_move("U")
-		KEY_DOWN, KEY_S:
+		KEY_DOWN:
 			_try_move("D")
-		KEY_LEFT, KEY_A:
+		KEY_LEFT:
 			_try_move("L")
-		KEY_RIGHT, KEY_D:
+		KEY_RIGHT:
 			_try_move("R")
 		KEY_TAB, KEY_SPACE:
 			_try_move("SWITCH")
-		KEY_R:
-			_load_level(level_index)
-		KEY_Q:
+		KEY_PAGEUP:
 			cam_yaw += 90.0
-		KEY_E:
+		KEY_PAGEDOWN:
 			cam_yaw -= 90.0
 		KEY_HOME:
 			cam_yaw = DEFAULT_YAW
@@ -329,13 +373,16 @@ func _try_move(action: String) -> void:
 	if busy:
 		return
 	busy = true
+	var ep := _epoch
 	await _do_move(action)
-	busy = false
+	if ep == _epoch:
+		busy = false
 
 
 ## Ask the rules (server or offline) for the next state and animate it.
 ## Returns false when the block fell.
 func _do_move(action: String) -> bool:
+	var ep := _epoch
 	var prev := state
 	if prev["orient"] == "SPLIT" and action != "SWITCH":
 		var target: Vector2i = prev["cubes"][prev["active"]] + OfflineRules.DIRS[action]
@@ -348,7 +395,9 @@ func _do_move(action: String) -> bool:
 	var next: Variant
 	var events: Array
 	if online:
-		var r := await net.request({"cmd": "move", "action": action})
+		var r := await net.request({"cmd": "move", "action": action}, ep)
+		if ep != _epoch or r.has("stale"):
+			return false
 		if r.is_empty() or not r.get("ok", false):
 			_go_offline(r)
 			return await _do_move(action)
@@ -359,10 +408,15 @@ func _do_move(action: String) -> bool:
 		next = res["state"]
 		events = res["events"]
 
-	if not await _animate(prev, next, action):
+	var ok := await _animate(prev, next, action)
+	if ep != _epoch:
+		return false
+	if not ok:
 		if replaying:
 			ui.set_status("Lời giải không khớp màn này — server Python có thể là bản cũ: tắt nó và mở lại game")
 			await get_tree().create_timer(3.0).timeout
+			if ep != _epoch:
+				return false
 		else:
 			ui.set_status("Rơi rồi! Chơi lại màn.")
 		await _load_level(level_index)
@@ -373,11 +427,13 @@ func _do_move(action: String) -> bool:
 	ui.set_moves(moves)
 	if "merge" in events:
 		ui.set_status("Hai khối đã nhập lại!")
-	elif "split" in events:
-		ui.set_status("Khối đã tách! Tab/Space để đổi khối điều khiển")
+	elif "split" in events and not replaying:
+		ui.set_status("Khối đã tách! Bấm Tab để đổi khối điều khiển")
 	if OfflineRules.is_goal(level, state):
 		ui.set_status("Hoàn thành màn trong %d nước!" % moves)
 		await block.sink()
+		if ep != _epoch:
+			return false
 	return true
 
 
@@ -421,23 +477,62 @@ func _support_flags(cs: Array, standing: bool, open: Dictionary) -> Array:
 # ---- solve -------------------------------------------------------------
 
 func _solve(algo: String) -> void:
-	if busy:
-		return
 	if not _has_source():
 		ui.set_status(NO_SOURCE_MSG)
 		return
+	_new_epoch()   # another solver button = stop the current solve/replay first
+	var ep := _epoch
 	busy = true
-	var result: Dictionary = {}
 	await _load_level(level_index)   # also retries the server if offline
+	if ep != _epoch:
+		return
+	var result: Dictionary = {}
+	var measuring := false
 	if online:
-		solving = true
-		_tick_solving(algo)
-		var r := await net.request({"cmd": "solve", "algo": algo})
-		solving = false
-		if r.get("ok", false):
-			result = r["result"]
-		else:
+		var r := await net.request({"cmd": "solve_start", "algo": algo}, ep)
+		if ep != _epoch or r.has("stale"):
+			return
+		if not r.get("ok", false):
 			ui.set_status("Server báo lỗi: %s" % r.get("error", "no reply"))
+			busy = false
+			return
+		solving = true
+		ui.clear_metrics()
+		var algo_name := "A*" if algo == "astar" else algo.to_upper()
+		var t0 := Time.get_ticks_msec()
+		var last_poll: Dictionary = {}
+		while true:
+			ui.show_loading("ĐANG GIẢI BẰNG %s" % algo_name, _progress_text(last_poll, t0),
+				_progress_frac(last_poll))
+			await get_tree().create_timer(0.15).timeout
+			if ep != _epoch:
+				return
+			var p := await net.request({"cmd": "solve_poll"}, ep)
+			if ep != _epoch or p.has("stale"):
+				return
+			if p.is_empty() or not p.get("ok", false):
+				_go_offline(p)
+				break
+			last_poll = p
+			var phase: String = p.get("phase", "")
+			if phase == "measuring" or phase == "done":
+				result = p["result"]
+				measuring = phase == "measuring"
+				break
+			if phase != "solving":
+				ui.set_status("Server báo lỗi: %s" % str(p.get("error", phase)))
+				break
+		solving = false
+		if not result.is_empty():
+			# Finished: fill the bar to 100 % and let it be seen (small levels
+			# are solved in a few ms and would otherwise flash at 0 %).
+			var found_text := "Đã tìm thấy đường đi!" if result.get("found", false) else "Không có đường đi."
+			ui.show_loading("ĐANG GIẢI BẰNG %s" % algo_name, "%s (%.1f giây)" % [
+				found_text, (Time.get_ticks_msec() - t0) / 1000.0], 1.0)
+			await get_tree().create_timer(0.7).timeout
+			if ep != _epoch:
+				return
+		ui.hide_loading()
 	else:
 		var path := repo_dir.path_join("results/sample/level%02d_%s.json" % [level.id, algo])
 		if FileAccess.file_exists(path):
@@ -449,20 +544,46 @@ func _solve(algo: String) -> void:
 		if not result.get("found", false):
 			ui.set_status("%s không tìm được lời giải" % algo.to_upper())
 		else:
-			await _load_level(level_index)
-			await _replay(algo, result["actions"])
-	busy = false
+			if measuring:
+				_wait_peak(algo, ep)
+			await _replay(algo, result["actions"], ep)
+	if ep == _epoch:
+		busy = false
 
 
-## Show the elapsed time while the server is solving (big levels take seconds).
-func _tick_solving(algo: String) -> void:
-	var t0 := Time.get_ticks_msec()
-	while solving:
-		ui.set_status("Python đang giải bằng %s... %.1f s" % [algo.to_upper(), (Time.get_ticks_msec() - t0) / 1000.0])
-		await get_tree().create_timer(0.2).timeout
+## Share of the level's reachable states expanded so far, -1 if unknown.
+func _progress_frac(p: Dictionary) -> float:
+	if p.is_empty():
+		return 0.0   # no poll answer yet: start the bar at 0 %
+	var total: Variant = p.get("total")
+	if total == null or int(total) <= 0:
+		return -1.0
+	return float(p.get("progress", 0)) / float(total)
 
 
-func _replay(algo: String, actions: Array) -> void:
+## Players only need the time; the bar shows the percentage.
+func _progress_text(_p: Dictionary, t0: int) -> String:
+	return "Đã chạy %.1f giây" % ((Time.get_ticks_msec() - t0) / 1000.0)
+
+
+## The server is still measuring peak memory after the actions arrived:
+## keep polling in the background (between replay moves) and fill it in.
+func _wait_peak(algo: String, ep: int) -> void:
+	while ep == _epoch:
+		await get_tree().create_timer(0.3).timeout
+		if ep != _epoch:
+			return
+		var p := await net.request({"cmd": "solve_poll"}, ep)
+		if ep != _epoch or p.has("stale") or not p.get("ok", false):
+			return
+		if p.get("phase") == "done":
+			ui.set_metrics(algo, p["result"]["metrics"])
+			return
+		if p.get("phase") != "measuring":
+			return
+
+
+func _replay(algo: String, actions: Array, ep: int) -> void:
 	replaying = true
 	skip_requested = false
 	replay_speed = 0
@@ -473,12 +594,17 @@ func _replay(algo: String, actions: Array) -> void:
 	while i < actions.size() and not skip_requested:
 		if not await _do_move(str(actions[i])):
 			break
+		if ep != _epoch:
+			return
 		i += 1
 		await get_tree().create_timer(0.08).timeout
+		if ep != _epoch:
+			return
 	Engine.time_scale = 1.0
 	if skip_requested and i < actions.size():
-		await _jump(actions.slice(i))
-	replaying = false
+		await _jump(actions.slice(i), ep)
+	if ep == _epoch:
+		replaying = false
 
 
 var _replay_algo: String = ""
@@ -489,10 +615,12 @@ func _replay_hint() -> void:
 
 
 ## Apply the remaining moves without animation (Esc during a replay).
-func _jump(rest: Array) -> void:
+func _jump(rest: Array, ep: int) -> void:
 	var next: Variant = state
 	if online:
-		var r := await net.request({"cmd": "apply", "actions": rest})
+		var r := await net.request({"cmd": "apply", "actions": rest}, ep)
+		if ep != _epoch or r.has("stale"):
+			return
 		next = NetClient.state_from_json(r.get("state")) if r.get("ok", false) else null
 	else:
 		for a in rest:
@@ -531,6 +659,12 @@ func _run_script(args: Dictionary) -> void:
 		seq.append("SWITCH" if ch == "T" else ch)
 	if args.has("skip-at"):
 		_skip_later(float(args["skip-at"]))
+	if args.has("help"):
+		ui.show_help()
+	if args.has("shot-during"):
+		_shot_later(float(args["shot-during"]), args["screenshot"])
+	if args.has("restart-at"):
+		_restart_later(float(args["restart-at"]))
 	if args.has("solve"):
 		await _solve(str(args["solve"]))
 	for i in seq.size():
@@ -549,6 +683,16 @@ func _skip_later(sec: float) -> void:
 		await get_tree().process_frame
 	await get_tree().create_timer(sec).timeout
 	skip_requested = true
+
+
+func _shot_later(sec: float, path: String) -> void:
+	await get_tree().create_timer(sec).timeout
+	_save_shot(path)
+
+
+func _restart_later(sec: float) -> void:
+	await get_tree().create_timer(sec).timeout
+	_restart(level_index)
 
 
 func _save_shot(path: String) -> void:

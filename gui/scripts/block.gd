@@ -87,10 +87,29 @@ func _place_marker() -> void:
 
 # ---- animations --------------------------------------------------------
 
+var _tweens: Array[Tween] = []
+
+
+func _tween() -> Tween:
+	_tweens = _tweens.filter(func(t: Tween) -> bool: return t.is_valid())
+	var t := create_tween()
+	_tweens.append(t)
+	return t
+
+
+## Restart / new level: stop every running animation (callers that await
+## them are dropped by the epoch check in main.gd).
+func stop_all() -> void:
+	for t in _tweens:
+		if t.is_valid():
+			t.kill()
+	_tweens.clear()
+
+
 func _rotate_about(node: Node3D, pivot: Vector3, axis: Vector3, angle: float, duration: float,
 		ease_type: Tween.EaseType = Tween.EASE_IN_OUT) -> void:
 	var start := node.transform
-	var tw := create_tween()
+	var tw := _tween()
 	tw.tween_method(
 		func(t: float) -> void:
 			var b := Basis(axis, angle * t)
@@ -164,7 +183,7 @@ func tumble(node: Node3D, cs: Array, ok: Array, dir: String) -> void:
 		await _rotate_about(node, (cs_c + cu_c) / 2.0, Vector3.UP.cross(tip), PI / 2, 0.28, Tween.EASE_IN)
 	var start := node.transform
 	var axis := Vector3.UP.cross(tip)
-	var tw := create_tween()
+	var tw := _tween()
 	tw.tween_method(
 		func(t: float) -> void:
 			var b := Basis(axis, t * t * 2.5 * PI)
@@ -184,11 +203,11 @@ static func _centroid(points: Array) -> Vector3:
 
 ## Split switch: the block shrinks away and two cubes pop up at their targets.
 func split_into(s: Dictionary) -> void:
-	var tw := create_tween()
+	var tw := _tween()
 	tw.tween_property(body, "scale", Vector3(0.05, 0.05, 0.05), 0.18)
 	await tw.finished
 	set_state(s)
-	var tw2 := create_tween().set_parallel(true)
+	var tw2 := _tween().set_parallel(true)
 	for c in cubes:
 		c.scale = Vector3(0.05, 0.05, 0.05)
 		tw2.tween_property(c, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -200,14 +219,14 @@ func set_active(i: int) -> void:
 	_place_marker()
 	active_marker.visible = true
 	var c: MeshInstance3D = cubes[i]
-	var tw := create_tween()
+	var tw := _tween()
 	tw.tween_property(c, "position:y", 0.8, 0.12).set_ease(Tween.EASE_OUT)
 	tw.tween_property(c, "position:y", 0.5, 0.18).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 
 
 ## Win: a little hop, then the block sinks into the hole.
 func sink() -> void:
-	var tw := create_tween()
+	var tw := _tween()
 	tw.tween_property(body, "position:y", body.position.y + 0.35, 0.18).set_ease(Tween.EASE_OUT)
 	tw.tween_property(body, "position:y", -2.2, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	await tw.finished

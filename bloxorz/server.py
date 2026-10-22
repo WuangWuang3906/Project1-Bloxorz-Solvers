@@ -15,6 +15,7 @@ from bloxorz.core.level import Level, load_level, parse_level
 from bloxorz.core.state import State
 from bloxorz.search import ALGORITHMS
 from bloxorz.search.common import run_solver
+from bloxorz.solve_job import SolveJob
 
 
 class Session:
@@ -23,10 +24,12 @@ class Session:
     def __init__(self) -> None:
         self.level: Level | None = None
         self.state: State | None = None
+        self.job = SolveJob()   # background solve for the GUI (solve_start/poll/cancel)
 
     def handle(self, msg: dict) -> dict:
         cmd = msg.get("cmd")
         if cmd == "load":
+            self.job.cancel()   # a new level or Restart stops the solver at once
             # "level" = the JSON the GUI itself shows, so both sides solve the same board;
             # "path" = a level file relative to the server's folder.
             self.level = parse_level(msg["level"]) if "level" in msg else load_level(msg["path"])
@@ -35,6 +38,7 @@ class Session:
         if self.level is None:
             return {"ok": False, "error": "no level loaded"}
         if cmd == "restart":
+            self.job.cancel()
             self.state = rules.initial_state(self.level)
             return {"ok": True, "state": self.state.to_json()}
         if cmd == "move":
@@ -63,6 +67,19 @@ class Session:
             except NotImplementedError:
                 return {"ok": False, "error": f"{algo} is not implemented yet"}
             return {"ok": True, "result": result.to_json(self.level.id, algo)}
+        if cmd == "solve_start":
+            # Non-blocking solve (what the GUI uses): the reply comes at once,
+            # then the GUI asks "solve_poll" until the actions are there.
+            algo = msg.get("algo", "")
+            if algo not in ALGORITHMS:
+                return {"ok": False, "error": f"unknown algo {algo!r}"}
+            self.job.start(algo, self.level)
+            return {"ok": True}
+        if cmd == "solve_poll":
+            return {"ok": True, **self.job.poll()}
+        if cmd == "solve_cancel":
+            self.job.cancel()
+            return {"ok": True}
         return {"ok": False, "error": f"unknown cmd {cmd!r}"}
 
 

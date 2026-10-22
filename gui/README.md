@@ -13,14 +13,17 @@ tools\godot\Godot_v4.7.2-stable_win64.exe --path gui
 
 Hoặc mở Godot, Import → chọn `gui/project.godot` → F5.
 
+Bảng **HƯỚNG DẪN** (nút ở góc dưới bên phải) liệt kê toàn bộ phím ngay trong game. Khi Python đang giải, game hiện bảng chờ "ĐANG GIẢI BẰNG ..." có thanh % tiến độ (bên trong: số trạng thái đã duyệt / tổng số trạng thái của màn (`bloxorz/data/state_counts.json`, tạo bằng `python tools/count_states.py`) và số giây đã chạy; người chơi chỉ thấy % và giây; thuật toán thường dừng trước 100% vì gặp đích sớm; R/RESTART/chọn màn khác để huỷ.
+
 | Điều khiển | Phím / chuột |
 | --- | --- |
-| Lăn khối | mũi tên / WASD |
+| Lăn khối | phím mũi tên (không dùng WASD: Unikey/Telex làm sai phím chữ) |
 | Đổi khối khi đã tách | Tab / Space |
 | Xoay góc nhìn | giữ chuột (trái/phải/giữa) và kéo |
 | Zoom | con lăn chuột |
-| Xoay 90° / về góc mặc định | Q, E / Home |
-| Chơi lại | R |
+| Xoay 90° / về góc mặc định | PageUp, PageDown / Home |
+| Toàn màn hình | F11 (cửa sổ thường cố định 1280×720, không kéo giãn) |
+| Chơi lại (huỷ luôn việc đang giải/phát lại) | R |
 | Khi đang phát lại lời giải: tua nhanh x1 → x4 → x16 | F |
 | Khi đang phát lại lời giải: bỏ qua, nhảy tới cuối | Esc |
 

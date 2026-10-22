@@ -53,11 +53,16 @@ def run_solver(solver: Solver, level: Level, start: State, measure_memory: bool 
     result = solver(level, start)
     result.time_ms = (time.perf_counter() - t0) * 1000
     if measure_memory:
-        tracemalloc.start()
-        try:
-            solver(level, start)
-            _, peak = tracemalloc.get_traced_memory()
-        finally:
-            tracemalloc.stop()
-        result.peak_kb = peak / 1024
+        result.peak_kb = measure_peak_kb(solver, level, start)
     return result
+
+
+def measure_peak_kb(solver: Solver, level: Level, start: State) -> float:
+    """Peak memory (KB) of one more solver run, traced with tracemalloc."""
+    tracemalloc.start()
+    try:
+        solver(level, start)
+        _, peak = tracemalloc.get_traced_memory()
+    finally:
+        tracemalloc.stop()
+    return peak / 1024

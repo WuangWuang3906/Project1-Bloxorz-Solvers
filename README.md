@@ -10,7 +10,7 @@ Cần **Windows 10/11 64-bit** và **Python 3.10+** trong PATH (đã thử với
 2. Nhấp đúp **`gui\export\Bloxorz.exe`** (hoặc `run.bat`). Game **tự bật server Python** ở chế độ nền và tự tắt khi đóng game.
    - Để `.exe` ở chỗ khác (ví dụ Downloads): game báo **"Không thấy mã nguồn Python — hãy đọc README, đặt mã nguồn đúng chỗ"**, các nút giải bị khoá (kể cả khi đang có server chạy ở nơi khác); chỉ chơi tay được 15 màn đã gói sẵn.
    - Không muốn dùng `.exe`: chạy `python tools/get_godot.py` (tải Godot 4.7.2, ~86 MB), bật `python -m bloxorz.server`, rồi `tools\godot\Godot_v4.7.2-stable_win64.exe --path gui`.
-3. Trong game: **LEVELS** chọn màn (15 màn, 5 nhóm), mũi tên/WASD để chơi, các nút **BFS / DFS / UCS / A\*** để máy giải và tự lăn tới đích. Khi đang phát lại: **F** tua nhanh, **Esc** nhảy tới cuối.
+3. Trong game: **LEVELS** chọn màn (15 màn, 5 nhóm), **phím mũi tên** để chơi (không dùng WASD vì Unikey/Telex làm sai phím chữ), các nút **BFS / DFS / UCS / A\*** để máy giải và tự lăn tới đích. Khi đang phát lại: **F** tua nhanh, **Esc** nhảy tới cuối. **R**/RESTART/chọn màn khác/bấm thuật toán khác huỷ ngay việc đang giải hoặc phát lại. **F11** bật/tắt toàn màn hình (cửa sổ thường giữ cố định 1280×720).
 4. Góc HUD phải hiện `● Python server`. Nếu hiện `○ Offline`: kiểm tra `.exe` nằm đúng `gui\export\` của mã nguồn và lệnh `python` chạy được, hoặc tự bật `python -m bloxorz.server`, rồi bấm RESTART.
 
 Không cần GUI: `python -m bloxorz solve levels/level01.json --algo astar` (xem bảng "Chạy" bên dưới). Chạy lại toàn bộ thí nghiệm: `pip install -r requirements.txt` rồi `python benchmark/run_benchmark.py` (~3 phút) và `python benchmark/plot_results.py`.
