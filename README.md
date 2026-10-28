@@ -89,7 +89,7 @@ File `.exe` chỉ chạy trên Windows; **macOS và Linux** chạy GUI từ mã 
 
 ## Trong game
 
-- **LEVELS**: chọn màn (15 màn, 5 nhóm). **Nút HƯỚNG DẪN** (góc dưới phải): xem toàn bộ phím.
+- **LEVELS**: chọn màn (15 màn, 5 nhóm). **Nút HƯỚNG DẪN** (góc dưới phải): xem toàn bộ phím. **Nút CÀI ĐẶT**: đổi màu ô công tắc Đậm / Nhạt.
 - **Phím mũi tên**: lăn khối (không dùng WASD vì Unikey/Telex làm sai phím chữ). **Tab/Space**: đổi khối khi đã tách. **R**: chơi lại. **F11**: toàn màn hình.
 - **BFS / DFS / UCS / A\***: máy giải (bảng chờ hiện % tiến độ) rồi khối tự lăn tới đích. Khi phát lại: **F** tua nhanh, **Esc** nhảy tới cuối. R / RESTART / đổi màn / bấm thuật toán khác huỷ ngay việc đang chạy.
 

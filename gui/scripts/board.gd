@@ -6,8 +6,17 @@ const TILE_H := 0.34
 
 ## "ring" (glowing ring + light) | "plain" (just the hole) — set before build().
 static var goal_style: String = "ring"
+## Switch markers: "dam" (strong, saturated colours) | "nhat" (soft glow).
+## Changed from the settings board; apply with set_marker_style().
+static var marker_style: String = "dam"
+
+const MARKER_COLORS := {
+	"dam": {"soft": Color("00a3cc"), "heavy": Color("e8195f"), "split": Color("9b45f0")},   # same hues, deeper
+	"nhat": {"soft": Color("8fe8ff"), "heavy": Color("ff5070"), "split": Color("c080ff")},
+}
 
 var bridge_nodes: Dictionary = {}   # bridge id -> Array[Node3D]
+var _markers: Array = []            # [MeshInstance3D, kind] of every switch marker
 
 var _tile_mesh: ArrayMesh = MeshUtil.rounded_box(Vector3(0.96, TILE_H, 0.96), 0.07)
 var _floor_a := MeshUtil.mat(Color("c4beba"), 0.45)
@@ -21,6 +30,7 @@ func build(lv: LevelData) -> void:
 	for child in get_children():
 		child.queue_free()
 	bridge_nodes.clear()
+	_markers.clear()
 	for r in lv.rows:
 		for c in lv.cols:
 			var cell := Vector2i(r, c)
@@ -111,7 +121,7 @@ func _add_soft_switch(node: Node3D) -> void:
 	m.bottom_radius = 0.31
 	m.height = 0.06
 	s.mesh = m
-	s.material_override = MeshUtil.glow(Color("8fe8ff"), 1.4)
+	_set_marker(s, "soft")
 	s.position.y = 0.03
 	node.add_child(s)
 
@@ -120,9 +130,9 @@ func _add_heavy_switch(node: Node3D) -> void:
 	for k in [1, -1]:
 		var s := MeshInstance3D.new()
 		var m := BoxMesh.new()
-		m.size = Vector3(0.62, 0.06, 0.13)
+		m.size = Vector3(0.66, 0.07, 0.16)
 		s.mesh = m
-		s.material_override = MeshUtil.glow(Color("ff5070"), 1.6)
+		_set_marker(s, "heavy")
 		s.position.y = 0.03
 		s.rotation.y = k * PI / 4
 		node.add_child(s)
@@ -134,9 +144,32 @@ func _add_split_switch(node: Node3D) -> void:
 		var m := BoxMesh.new()
 		m.size = Vector3(0.07, 0.06, 0.5)
 		s.mesh = m
-		s.material_override = MeshUtil.glow(Color("c080ff"), 1.6)
+		_set_marker(s, "split")
 		s.position = Vector3(dx, 0.03, 0)
 		node.add_child(s)
+
+
+func _set_marker(mi: MeshInstance3D, kind: String) -> void:
+	_markers.append([mi, kind])
+	mi.material_override = _marker_material(kind)
+
+
+static func _marker_material(kind: String) -> StandardMaterial3D:
+	var c: Color = MARKER_COLORS[marker_style][kind]
+	if marker_style == "dam":
+		var m := MeshUtil.mat(c, 0.35)   # solid colour, a little glow so it stays readable
+		m.emission_enabled = true
+		m.emission = c
+		m.emission_energy_multiplier = 0.25
+		return m
+	return MeshUtil.glow(c, 1.5)
+
+
+## Re-colour every switch marker of the current board (settings changed).
+func set_marker_style(style: String) -> void:
+	marker_style = style
+	for pair in _markers:
+		(pair[0] as MeshInstance3D).material_override = _marker_material(pair[1])
 
 
 ## Show open bridges, hide closed ones. Animated: closed tiles flip down and

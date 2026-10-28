@@ -22,6 +22,7 @@ Bảng **HƯỚNG DẪN** (nút ở góc dưới bên phải) liệt kê toàn b
 | Xoay góc nhìn | giữ chuột (trái/phải/giữa) và kéo |
 | Zoom | con lăn chuột |
 | Xoay 90° / về góc mặc định | PageUp, PageDown / Home |
+| Màu ô công tắc Đậm / Nhạt (lưu lại cho lần sau) | nút CÀI ĐẶT (góc dưới phải) |
 | Toàn màn hình | F11 (cửa sổ thường cố định 1280×720, không kéo giãn) |
 | Chơi lại (huỷ luôn việc đang giải/phát lại) | R |
 | Khi đang phát lại lời giải: tua nhanh x1 → x4 → x16 | F |

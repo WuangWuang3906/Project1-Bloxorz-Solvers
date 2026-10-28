@@ -23,6 +23,8 @@ extends Node3D
 ##   --skip-at=SEC     press Esc SEC seconds into the replay
 ##   --restart-at=SEC  press R SEC seconds after the solve button
 ##   --help            open the how-to-play board
+##   --settings        open the settings board
+##   --markers=dam|nhat  switch colour style for this run
 ##   --shot-during=SEC take the screenshot SEC seconds after the solve button, then quit
 ##   --goal=ring|plain   goal look
 ##   --select          open the level screen
@@ -80,6 +82,9 @@ func _ready() -> void:
 	ui.restart_pressed.connect(func() -> void: _restart(level_index))
 	ui.level_selected.connect(_restart)
 	ui.solve_pressed.connect(_solve)
+	ui.marker_style_changed.connect(_on_marker_style)
+	Board.marker_style = _load_setting("marker_style", "dam")
+	ui.set_marker_style(Board.marker_style)
 
 	_find_levels()
 	var args := _cmd_args()
@@ -121,6 +126,25 @@ func _start_server() -> bool:
 			return true
 	ui.hide_loading()
 	return false
+
+
+const SETTINGS_PATH := "user://settings.cfg"
+
+
+func _on_marker_style(style: String) -> void:
+	board.set_marker_style(style)
+	var cfg := ConfigFile.new()
+	cfg.load(SETTINGS_PATH)
+	cfg.set_value("display", "marker_style", style)
+	cfg.save(SETTINGS_PATH)
+
+
+func _load_setting(key: String, fallback: String) -> String:
+	var cfg := ConfigFile.new()
+	if cfg.load(SETTINGS_PATH) != OK:
+		return fallback
+	var v: String = str(cfg.get_value("display", key, fallback))
+	return v if v in ["dam", "nhat"] else fallback
 
 
 func _has_source() -> bool:
@@ -310,6 +334,10 @@ func _go_offline(reply: Dictionary) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if ui.is_level_select_open():
+		return
+	if ui.is_settings_open():
+		if event is InputEventKey and event.pressed and event.keycode in [KEY_ESCAPE, KEY_ENTER]:
+			ui.hide_settings()
 		return
 	if ui.is_help_open():
 		if event is InputEventKey and event.pressed and event.keycode in [KEY_ESCAPE, KEY_ENTER, KEY_SPACE]:
@@ -661,6 +689,11 @@ func _run_script(args: Dictionary) -> void:
 		_skip_later(float(args["skip-at"]))
 	if args.has("help"):
 		ui.show_help()
+	if args.has("settings"):
+		ui.show_settings()
+	if args.has("markers"):
+		_on_marker_style(str(args["markers"]))
+		ui.set_marker_style(str(args["markers"]))
 	if args.has("shot-during"):
 		_shot_later(float(args["shot-during"]), args["screenshot"])
 	if args.has("restart-at"):

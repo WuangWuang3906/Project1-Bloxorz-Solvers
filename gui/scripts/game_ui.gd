@@ -7,6 +7,7 @@ signal new_game_pressed
 signal restart_pressed
 signal level_selected(index: int)
 signal solve_pressed(algo: String)
+signal marker_style_changed(style: String)
 
 const ALGOS := [["BFS", "bfs"], ["DFS", "dfs"], ["UCS", "ucs"], ["A*", "astar"]]
 const GROUP_COLORS := {
@@ -22,6 +23,8 @@ var _status: Label
 var _select: Control
 var _grid: GridContainer
 var _help: Control
+var _settings: Control
+var _style_buttons: Dictionary = {}   # "dam"/"nhat" -> Button
 var _loading: Control
 var _loading_title: Label
 var _loading_detail: Label
@@ -83,14 +86,18 @@ func _ready() -> void:
 	_status.offset_right = 500
 	add_child(_status)
 
-	var help_btn := _button("HƯỚNG DẪN", show_help)
-	add_child(help_btn)
-	help_btn.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 18)
-	help_btn.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	help_btn.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	var corner := HBoxContainer.new()   # bottom-right: settings + help
+	corner.add_theme_constant_override("separation", 10)
+	corner.add_child(_button("CÀI ĐẶT", show_settings))
+	corner.add_child(_button("HƯỚNG DẪN", show_help))
+	add_child(corner)
+	corner.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 18)
+	corner.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	corner.grow_vertical = Control.GROW_DIRECTION_BEGIN
 
 	_build_level_select()
 	_build_help()
+	_build_settings()
 	_build_loading()
 
 
@@ -150,6 +157,26 @@ func hide_help() -> void:
 
 func is_help_open() -> bool:
 	return _help.visible
+
+
+func show_settings() -> void:
+	_settings.visible = true
+
+
+func hide_settings() -> void:
+	_settings.visible = false
+
+
+func is_settings_open() -> bool:
+	return _settings.visible
+
+
+## Highlight the chosen switch-colour button.
+func set_marker_style(style: String) -> void:
+	for key in _style_buttons:
+		var b: Button = _style_buttons[key]
+		b.add_theme_stylebox_override("normal", _style(RED if key == style else CREAM, 4, true, 5))
+		b.add_theme_color_override("font_color", Color.WHITE if key == style else INK)
 
 
 ## Waiting board while Python solves (does not block the buttons: R / RESTART
@@ -396,6 +423,34 @@ func _build_help() -> void:
 		grid.add_child(_label(row[0], 16, RED, 0))
 		grid.add_child(_label(row[1], 16, INK, 0))
 	var ok := _button("ĐÃ HIỂU", hide_help, true)
+	ok.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	v.add_child(ok)
+
+
+func _build_settings() -> void:
+	var parts := _wood_board(Vector2(520, 0))
+	_settings = parts[0]
+	_settings.mouse_filter = Control.MOUSE_FILTER_STOP
+	var v: VBoxContainer = parts[1]
+	var title := _label("CÀI ĐẶT", 26, YELLOW, 8)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(title)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 12)
+	v.add_child(row)
+	row.add_child(_label("Màu ô công tắc:", 17, INK, 0))
+	for opt in [["dam", "ĐẬM"], ["nhat", "NHẠT"]]:
+		var key: String = opt[0]
+		var b := _button(opt[1], func() -> void:
+			set_marker_style(key)
+			marker_style_changed.emit(key))
+		_style_buttons[key] = b
+		row.add_child(b)
+	var note := _label("Đậm: công tắc màu đặc, dễ nhìn. Nhạt: màu phát sáng nhẹ.", 14, Color("7a5a3a"), 0)
+	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(note)
+	var ok := _button("ĐÓNG", hide_settings, true)
 	ok.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	v.add_child(ok)
 
