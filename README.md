@@ -1,68 +1,103 @@
 # Project 1 — Bloxorz Solvers (CSC14003, FIT-HCMUS)
 
-Game Bloxorz 3D (Godot 4) và 4 thuật toán tìm kiếm tự cài bằng Python: **BFS, DFS, UCS, A\***.
+Game Bloxorz 3D (Godot 4) và 4 thuật toán tìm kiếm tự cài bằng Python: **BFS, DFS, UCS, A\***. Giao diện chỉ vẽ; luật chơi và thuật toán nằm ở phía Python, hai bên nói chuyện qua TCP `127.0.0.1:5555`.
 
-## Chạy nhanh (người chấm)
+## Thành viên
 
-Cần **Windows 10/11 64-bit** và **Python 3.10+** trong PATH (đã thử với 3.13). Phần luật và thuật toán chỉ dùng thư viện chuẩn.
+| MSSV | Họ và tên | Vai trò |
+| --- | --- | --- |
+| 24120221 | Trần Công Quang | Trưởng nhóm: luật chơi (`bloxorz/core/`), GUI Godot, server, 15 màn chơi, unit test, thực nghiệm, video, ghép báo cáo |
+| 24120152 | Trần Ngọc Thanh Tú | BFS (`bloxorz/search/bfs.py`) và phần BFS trong báo cáo |
+| 24120199 | Trịnh Kim Mai | DFS (`bloxorz/search/dfs.py`) và phần DFS trong báo cáo |
+| 24120181 | Huỳnh Huy Hoàng | UCS (`bloxorz/search/ucs.py`), hàm chi phí và phần UCS trong báo cáo |
+| 24120132 | Phạm Nguyễn Quang Sáng | A\* và heuristic (`bloxorz/search/astar.py`, `heuristics.py`) và phần A\* trong báo cáo |
 
-1. Tải **`Bloxorz.zip`** (~25 MB) từ link Google Drive trong báo cáo, giải nén ra `Bloxorz.exe` và đặt vào `gui\export\Bloxorz.exe` trong thư mục mã nguồn. Nếu "Extract All" của Windows báo lỗi (file nén kiểu LZMA): dùng 7-Zip/WinRAR hoặc lệnh `tar -xf Bloxorz.zip`.
-2. Nhấp đúp **`gui\export\Bloxorz.exe`** (hoặc `run.bat`). Game **tự bật server Python** ở chế độ nền và tự tắt khi đóng game.
-   - Để `.exe` ở chỗ khác (ví dụ Downloads): game báo **"Không thấy mã nguồn Python — hãy đọc README, đặt mã nguồn đúng chỗ"**, các nút giải bị khoá (kể cả khi đang có server chạy ở nơi khác); chỉ chơi tay được 15 màn đã gói sẵn.
-   - Không muốn dùng `.exe`: chạy `python tools/get_godot.py` (tải Godot 4.7.2, ~86 MB), bật `python -m bloxorz.server`, rồi `tools\godot\Godot_v4.7.2-stable_win64.exe --path gui`.
-3. Trong game: **LEVELS** chọn màn (15 màn, 5 nhóm), **phím mũi tên** để chơi (không dùng WASD vì Unikey/Telex làm sai phím chữ), các nút **BFS / DFS / UCS / A\*** để máy giải và tự lăn tới đích. Khi đang phát lại: **F** tua nhanh, **Esc** nhảy tới cuối. **R**/RESTART/chọn màn khác/bấm thuật toán khác huỷ ngay việc đang giải hoặc phát lại. **F11** bật/tắt toàn màn hình (cửa sổ thường giữ cố định 1280×720).
-4. Góc HUD phải hiện `● Python server`. Nếu hiện `○ Offline`: kiểm tra `.exe` nằm đúng `gui\export\` của mã nguồn và lệnh `python` chạy được, hoặc tự bật `python -m bloxorz.server`, rồi bấm RESTART.
+## Yêu cầu
 
-Không cần GUI: `python -m bloxorz solve levels/level01.json --algo astar` (xem bảng "Chạy" bên dưới). Chạy lại toàn bộ thí nghiệm: `pip install -r requirements.txt` rồi `python benchmark/run_benchmark.py` (~3 phút) và `python benchmark/plot_results.py`.
-
-## Cấu trúc
-
-```text
-bloxorz/        Python: luật game (core/) + solver (search/) + TCP server
-gui/            Godot 4: giao diện 3D
-levels/         màn chơi JSON
-tests/          pytest
-benchmark/      chạy thí nghiệm cho báo cáo
-docs/           luật, định dạng JSON, kiến trúc, cách test, kế hoạch
-```
-
-## Bắt đầu
+- **Python 3.10+** (đã thử 3.13). Luật chơi và thuật toán chỉ dùng thư viện chuẩn; `pytest`, `matplotlib` chỉ để test và vẽ biểu đồ.
+- GUI: **Windows** dùng file `.exe` (Cách 1), hoặc **mọi hệ điều hành** (Windows, macOS, Linux) dùng Godot 4.7.2 (Cách 2).
 
 ```bash
-python -m venv .venv
-.venv\Scripts\activate
 pip install -r requirements.txt
-pytest -q
-python -m bloxorz show levels/level01.json
 ```
 
-**Thành viên mới: đọc [docs/ONBOARDING.md](docs/ONBOARDING.md) trước.** Đọc tiếp: [AGENTS.md](AGENTS.md) (quy định chung, cả cho AI) → [docs/TESTING.md](docs/TESTING.md) → [CONTRIBUTING.md](CONTRIBUTING.md).
+## Cách 1 — Windows: chạy file `.exe`
 
-## Chạy
+1. Tải **`Bloxorz.exe`** (~105 MB): https://drive.google.com/file/d/1-p3JeccLZsZWYPmOLMdXkbuCNvejvZwJ/view
+2. Đặt file vào **`gui\export\Bloxorz.exe`** trong thư mục mã nguồn này.
+3. Nhấp đúp `gui\export\Bloxorz.exe` (hoặc `run.bat` ở thư mục gốc). Game **tự bật server Python** và tự tắt khi đóng game. Góc trên phải hiện `● Python server` là đúng.
+
+Lưu ý:
+- `.exe` đặt ở chỗ khác (ví dụ Downloads): vẫn chơi tay được 15 màn, nhưng game báo *"Không thấy mã nguồn Python — hãy đọc README…"* và khoá các nút giải.
+- Nhấp đúp mà **không có gì xảy ra**: máy đang bật **Smart App Control** / Application Control của Windows, chặn mọi `.exe` không có chữ ký số (file của nhóm không ký số). Dùng **Cách 2**.
+- Hiện `○ Offline`: kiểm tra lệnh `python` chạy được trong terminal, hoặc tự bật `python -m bloxorz.server` ở thư mục gốc rồi bấm RESTART.
+
+## Cách 2 — Mọi hệ điều hành (macOS, Linux, Windows): chạy bằng Godot
+
+File `.exe` chỉ chạy trên Windows; **macOS và Linux** chạy GUI từ mã nguồn:
+
+1. Tải **Godot 4.7.2 (bản Standard, không phải .NET)** cho hệ điều hành của mình: https://godotengine.org/download/archive/ (chọn 4.7.2-stable).
+   Trên Windows có thể dùng lệnh: `python tools/get_godot.py` (tải vào `tools/godot/`).
+2. Mở terminal ở **thư mục gốc** của mã nguồn, bật server (để cửa sổ này chạy):
+   ```bash
+   python -m bloxorz.server
+   ```
+   macOS/Linux dùng `python3` nếu máy không có lệnh `python`.
+3. Mở game:
+   - **Cách dễ:** mở Godot → *Import* → chọn `gui/project.godot` → bấm **Run** (F5).
+   - **Dòng lệnh:**
+     - Windows: `tools\godot\Godot_v4.7.2-stable_win64.exe --path gui`
+     - macOS: `/Applications/Godot.app/Contents/MacOS/Godot --path gui`
+     - Linux: `./Godot_v4.7.2-stable_linux.x86_64 --path gui`
+4. macOS lần đầu có thể báo *"không thể mở vì không xác minh được nhà phát triển"*: chuột phải vào Godot.app → **Open** → Open.
+
+## Trong game
+
+- **LEVELS**: chọn màn (15 màn, 5 nhóm). **Nút HƯỚNG DẪN** (góc dưới phải): xem toàn bộ phím.
+- **Phím mũi tên**: lăn khối (không dùng WASD vì Unikey/Telex làm sai phím chữ). **Tab/Space**: đổi khối khi đã tách. **R**: chơi lại. **F11**: toàn màn hình.
+- **BFS / DFS / UCS / A\***: máy giải (bảng chờ hiện % tiến độ) rồi khối tự lăn tới đích. Khi phát lại: **F** tua nhanh, **Esc** nhảy tới cuối. R / RESTART / đổi màn / bấm thuật toán khác huỷ ngay việc đang chạy.
+
+## Không cần GUI (mọi hệ điều hành)
 
 | Việc | Lệnh |
 | --- | --- |
 | Xem màn chơi | `python -m bloxorz show levels/level01.json` |
 | Chơi trong terminal | `python -m bloxorz play levels/level01.json` |
-| Giải | `python -m bloxorz solve levels/level01.json --algo astar` |
+| Giải và xem từng bước | `python -m bloxorz solve levels/level06.json --algo ucs --replay` |
 | Kiểm chứng lời giải | `python -m bloxorz verify levels/level01.json results/x.json` |
-| Server cho GUI | `python -m bloxorz.server --port 5555` |
-| Đo đạc (không mở GUI) | `python benchmark/run_benchmark.py` → `results/benchmark.csv`, `results/summary.md` |
+| Chạy toàn bộ test | `pytest -q` (bỏ 3 màn lớn cho nhanh: `pytest -q -m "not slow"`) |
+| Thực nghiệm (15 màn × 4 thuật toán, ~4 phút) | `python benchmark/run_benchmark.py` → `results/benchmark.csv`, `results/summary.md` |
 | Vẽ biểu đồ | `python benchmark/plot_results.py` → `results/figures/*.png` |
-| Thử trọng số ô dễ vỡ (lý do chọn 2) | `python benchmark/cost_weights.py` → `results/cost_weights.md` (xem `docs/GAME_RULES.md` mục 6) |
-| GUI (bản xuất) | `run.bat`, hoặc tự bật server rồi mở `gui\export\Bloxorz.exe` |
-| GUI (mã nguồn) | Mở `gui/project.godot` bằng **Godot 4.7.2** (xem [gui/README.md](gui/README.md)) |
+| Thử trọng số ô dễ vỡ (lý do chọn 2) | `python benchmark/cost_weights.py` → `results/cost_weights.md` |
+| Đếm số trạng thái mỗi màn | `python tools/count_states.py` |
 
-## Xuất file .exe (trưởng nhóm)
+`--algo` nhận `bfs`, `dfs`, `ucs`, `astar`.
+
+## Cấu trúc
+
+```text
+bloxorz/        Python: luật game (core/), 4 thuật toán (search/), TCP server
+gui/            Godot 4: giao diện 3D
+levels/         15 màn chơi JSON
+tests/          pytest
+benchmark/      thực nghiệm và biểu đồ cho báo cáo
+docs/           luật, định dạng JSON, kiến trúc, cách test, kế hoạch
+tools/          tải Godot, xuất .exe, đếm trạng thái
+```
+
+Thành viên đọc thêm: [docs/ONBOARDING.md](docs/ONBOARDING.md), [AGENTS.md](AGENTS.md), [docs/GAME_RULES.md](docs/GAME_RULES.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## Xuất file .exe (chỉ Windows, trưởng nhóm)
 
 ```bash
 python tools/get_godot.py --templates
 python tools/build_exe.py
 ```
 
-Lệnh 1 tải Godot và export templates (~1 GB, chỉ giữ 2 file Windows vào `tools/godot/templates/`, không commit). Lệnh 2 gói 15 màn vào game, tạo `gui/export/Bloxorz.exe` (một file) và `gui/export/Bloxorz.zip` (~25 MB, để tải lên Drive). Godot cài ở chỗ khác thì đặt biến `GODOT` trỏ tới file `..._console.exe`. Thư mục `gui/export/` không commit. Khi nộp: zip chính (mã nguồn + báo cáo) không kèm `.exe`; `.exe` để riêng trên Google Drive, link ghi trong báo cáo. File `.exe` tự tìm mã nguồn (`bloxorz/server.py`) ở các thư mục cha để bật server.
+Tạo `gui/export/Bloxorz.exe` và `Bloxorz.zip` (không commit, chia sẻ qua Google Drive). Godot cài ở chỗ khác thì đặt biến `GODOT` trỏ tới file `..._console.exe`.
 
 ## Tham khảo
 
-- Bloxorz — Coolmath Games: https://www.coolmathgames.com/0-bloxorz
+- Bloxorz (game gốc) — Coolmath Games: https://www.coolmathgames.com/0-bloxorz (chỉ tham khảo luật; 15 màn do nhóm tự thiết kế)
 - Russell & Norvig, *Artificial Intelligence: A Modern Approach*, 4th ed., chương 3.
+- Godot Engine 4.7: https://godotengine.org
