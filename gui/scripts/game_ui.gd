@@ -7,6 +7,7 @@ signal new_game_pressed
 signal restart_pressed
 signal level_selected(index: int)
 signal solve_pressed(algo: String)
+signal marker_style_changed(style: String)
 
 const ALGOS := [["BFS", "bfs"], ["DFS", "dfs"], ["UCS", "ucs"], ["A*", "astar"]]
 const GROUP_COLORS := {
@@ -20,6 +21,29 @@ var _metrics: Label
 var _status: Label
 var _select: Control
 var _grid: GridContainer
+<<<<<<< Updated upstream
+=======
+var _help: Control
+var _settings: Control
+var _style_buttons: Dictionary = {}   # "dam"/"nhat" -> Button
+var _loading: Control
+var _loading_title: Label
+var _loading_detail: Label
+var _loading_bar: ProgressBar
+var _loading_t: float = 0.0
+var _loading_frac: float = -1.0   # <0: unknown total, bar sweeps back and forth
+
+const HELP_LINES := [
+	["Mũi tên ↑ ↓ ← →", "Lăn khối"],
+	["Tab / Space", "Đổi khối điều khiển (khi đã tách)"],
+	["R", "Chơi lại màn (huỷ luôn việc đang giải)"],
+	["Kéo chuột · Cuộn chuột", "Xoay góc nhìn · phóng to/thu nhỏ"],
+	["PageUp / PageDown · Home", "Xoay 90° · về góc mặc định"],
+	["F11", "Bật/tắt toàn màn hình"],
+	["BFS · DFS · UCS · A*", "Máy tự giải rồi lăn tới đích"],
+	["F · Esc (khi phát lại)", "Tua nhanh · nhảy tới cuối"],
+]
+>>>>>>> Stashed changes
 
 
 func _ready() -> void:
@@ -62,7 +86,33 @@ func _ready() -> void:
 	_status.offset_right = 500
 	add_child(_status)
 
+<<<<<<< Updated upstream
 	_build_level_select()
+=======
+	var corner := HBoxContainer.new()   # bottom-right: settings + help
+	corner.add_theme_constant_override("separation", 10)
+	corner.add_child(_button("CÀI ĐẶT", show_settings))
+	corner.add_child(_button("HƯỚNG DẪN", show_help))
+	add_child(corner)
+	corner.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 18)
+	corner.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	corner.grow_vertical = Control.GROW_DIRECTION_BEGIN
+
+	_build_level_select()
+	_build_help()
+	_build_settings()
+	_build_loading()
+
+
+func _process(delta: float) -> void:
+	if not _loading.visible:
+		return
+	_loading_t += delta
+	if _loading_frac < 0.0:   # total unknown: sweep back and forth, starting from 0
+		_loading_bar.value = (0.5 - cos(_loading_t * 2.6) * 0.5) * 100.0
+	else:                     # ease towards the real percentage
+		_loading_bar.value = lerpf(_loading_bar.value, _loading_frac * 100.0, 1.0 - exp(-delta * 10.0))
+>>>>>>> Stashed changes
 
 
 # ---- public API --------------------------------------------------------
@@ -101,6 +151,59 @@ func is_level_select_open() -> bool:
 	return _select.visible
 
 
+<<<<<<< Updated upstream
+=======
+func show_help() -> void:
+	_help.visible = true
+
+
+func hide_help() -> void:
+	_help.visible = false
+
+
+func is_help_open() -> bool:
+	return _help.visible
+
+
+func show_settings() -> void:
+	_settings.visible = true
+
+
+func hide_settings() -> void:
+	_settings.visible = false
+
+
+func is_settings_open() -> bool:
+	return _settings.visible
+
+
+## Highlight the chosen switch-colour button.
+func set_marker_style(style: String) -> void:
+	for key in _style_buttons:
+		var b: Button = _style_buttons[key]
+		b.add_theme_stylebox_override("normal", _style(RED if key == style else CREAM, 4, true, 5))
+		b.add_theme_color_override("font_color", Color.WHITE if key == style else INK)
+
+
+## Waiting board while Python solves (does not block the buttons: R / RESTART
+## / LEVELS still work and cancel the solve).
+## frac = share of the level's states explored so far (0..1), or -1 if unknown.
+func show_loading(title: String, detail: String, frac: float = -1.0) -> void:
+	if not _loading.visible or _loading_title.text != title:   # a new solve
+		_loading_t = 0.0
+		_loading_bar.value = 0.0
+	_loading_frac = minf(frac, 1.0)
+	_loading_bar.show_percentage = frac >= 0.0
+	_loading_title.text = title
+	_loading_detail.text = detail
+	_loading.visible = true
+
+
+func hide_loading() -> void:
+	_loading.visible = false
+
+
+>>>>>>> Stashed changes
 func set_title(text: String) -> void:
 	_title.text = text
 
@@ -161,6 +264,232 @@ func _build_level_select() -> void:
 	v.add_child(close)
 
 
+<<<<<<< Updated upstream
+=======
+# ---- help & loading boards (wood frame, moss on the broken edges) -------
+
+const WOOD := Color("9a6234")
+const WOOD_DARK := Color("4a2a12")
+const WOOD_LIGHT := Color("b57a46")
+const PAPER := Color("f8ecd0")
+const MOSS := [Color("6cc04a"), Color("4fa53a"), Color("8fdc5c")]
+
+
+## Old wooden sign: jagged planks with chips and cracks, a rough paper
+## panel inside. Drawn in code (no image), so it scales and stays sharp.
+class WoodFrame extends Control:
+	const MARGIN := 22.0
+
+	func _jagged(r: Rect2, step: float, depth: float, rng: RandomNumberGenerator, chips: int) -> PackedVector2Array:
+		var pts := PackedVector2Array()
+		var corners := [r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]
+		var chip_at := {}
+		for k in chips:   # a few deep notches = broken-off pieces
+			chip_at[rng.randi() % 40] = true
+		var idx := 0
+		for e in 4:
+			var a: Vector2 = corners[e]
+			var b: Vector2 = corners[(e + 1) % 4]
+			var n := maxi(2, int(a.distance_to(b) / step))
+			var inward := (b - a).normalized().orthogonal()   # points into the rectangle
+			for t in n:
+				var pnt := a.lerp(b, float(t) / n)
+				var d := rng.randf_range(0.0, depth)
+				if chip_at.has(idx % 40):
+					d = depth * 2.6
+				if t == 0:
+					d *= 0.4   # keep corners roughly in place
+				pts.append(pnt + inward * d)
+				idx += 1
+		return pts
+
+	func _draw() -> void:
+		var rng := RandomNumberGenerator.new()
+		rng.seed = 11
+		var outer := _jagged(Rect2(Vector2.ZERO, size), 18.0, 5.0, rng, 5)
+		draw_colored_polygon(outer, GameUI.WOOD)
+		# plank seams and wood grain on the visible border
+		var plank := size.y / 3.0
+		for k in [1, 2]:
+			draw_line(Vector2(4, plank * k), Vector2(MARGIN - 2, plank * k + 2), GameUI.WOOD_DARK, 2.0)
+			draw_line(Vector2(size.x - MARGIN + 2, plank * k - 3), Vector2(size.x - 4, plank * k), GameUI.WOOD_DARK, 2.0)
+		for k in int(size.x / 26.0):
+			var x := 10.0 + k * 26.0 + rng.randf_range(-6, 6)
+			var w := rng.randf_range(10, 22)
+			draw_line(Vector2(x, 7 + rng.randf_range(0, 6)), Vector2(x + w, 7 + rng.randf_range(0, 6)), GameUI.WOOD_LIGHT, 1.5)
+			draw_line(Vector2(x, size.y - 9 - rng.randf_range(0, 6)), Vector2(x + w, size.y - 9 - rng.randf_range(0, 6)), GameUI.WOOD_LIGHT, 1.5)
+		# cracks running in from the edges
+		for k in 6:
+			var on_top := k % 2 == 0
+			var x := size.x * rng.randf_range(0.08, 0.92)
+			var y := 2.0 if on_top else size.y - 2.0
+			var line := PackedVector2Array([Vector2(x, y)])
+			for s in 3:
+				x += rng.randf_range(-7, 7)
+				y += rng.randf_range(4, 7) * (1.0 if on_top else -1.0)
+				line.append(Vector2(x, y))
+			draw_polyline(line, GameUI.WOOD_DARK, 2.0)
+		draw_polyline(outer + PackedVector2Array([outer[0]]), GameUI.WOOD_DARK, 4.0)
+		# rough paper panel inside
+		var inner := _jagged(Rect2(Vector2(MARGIN, MARGIN), size - Vector2(MARGIN, MARGIN) * 2), 26.0, 2.5, rng, 2)
+		draw_colored_polygon(inner, GameUI.PAPER)
+		draw_polyline(inner + PackedVector2Array([inner[0]]), Color("6b4420"), 2.5)
+
+
+## Moss clumps and leaf sprouts on the corners (drawn over the frame).
+class Moss extends Control:
+	func _leaf(base: Vector2, angle: float, length: float, color: Color) -> void:
+		var pts := PackedVector2Array()
+		for i in 13:   # almond shape: two arcs from base to tip
+			var t := float(i) / 12.0
+			pts.append(Vector2(t * length, sin(t * PI) * length * 0.32))
+		for i in range(11, 0, -1):
+			var t := float(i) / 12.0
+			pts.append(Vector2(t * length, -sin(t * PI) * length * 0.32))
+		var xf := Transform2D(angle, base)
+		draw_colored_polygon(xf * pts, color)
+		draw_line(base, xf * Vector2(length * 0.9, 0), color.darkened(0.35), 1.5)
+
+	func _clump(center: Vector2, radius: float, rng: RandomNumberGenerator) -> void:
+		for i in 14:
+			var off := Vector2(rng.randf_range(-radius, radius), rng.randf_range(-radius * 0.55, radius * 0.55))
+			var c: Color = GameUI.MOSS[rng.randi() % GameUI.MOSS.size()]
+			draw_circle(center + off, rng.randf_range(radius * 0.25, radius * 0.45), c)
+		for i in 6:   # light speckles
+			var off := Vector2(rng.randf_range(-radius, radius), rng.randf_range(-radius * 0.5, radius * 0.4))
+			draw_circle(center + off, rng.randf_range(1.5, 3.0), Color("c4f08a"))
+
+	func _draw() -> void:
+		var rng := RandomNumberGenerator.new()
+		rng.seed = 5
+		var r := minf(size.y * 0.16, 30.0)
+		_clump(Vector2(r * 0.9, r * 0.5), r, rng)                       # top-left
+		_clump(Vector2(size.x - r * 0.9, r * 0.5), r, rng)              # top-right
+		_clump(Vector2(r * 0.8, size.y - r * 0.45), r * 0.85, rng)      # bottom-left
+		_clump(Vector2(size.x - r * 0.8, size.y - r * 0.45), r * 0.85, rng)   # bottom-right
+		var leaf := Color("4caf3c")
+		_leaf(Vector2(r * 0.6, 0), -2.3, r * 1.3, leaf)
+		_leaf(Vector2(r * 1.2, -2), -1.2, r * 1.1, Color("6cc04a"))
+		_leaf(Vector2(size.x - r * 0.6, 0), -0.85, r * 1.3, leaf)
+		_leaf(Vector2(size.x - r * 1.3, -2), -1.95, r * 1.0, Color("6cc04a"))
+		_leaf(Vector2(size.x - r * 0.4, size.y - 4), -0.2, r * 0.9, leaf)
+		_leaf(Vector2(r * 0.4, size.y - 4), PI + 0.2, r * 0.9, leaf)
+
+
+func _wood_board(min_size: Vector2) -> Array:
+	## Returns [root, content VBox]. Root is centred on screen.
+	var root := CenterContainer.new()
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.visible = false
+	add_child(root)
+	var frame := PanelContainer.new()   # every child gets the frame's full rect
+	frame.custom_minimum_size = min_size
+	frame.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	root.add_child(frame)
+	var wood := WoodFrame.new()   # first child = drawn behind the content
+	wood.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(wood)
+	var pad := MarginContainer.new()
+	for side in ["left", "right", "top", "bottom"]:
+		pad.add_theme_constant_override("margin_" + side, int(WoodFrame.MARGIN) + 18)
+	frame.add_child(pad)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 10)
+	pad.add_child(v)
+	var moss := Moss.new()        # last child = drawn over the edges
+	moss.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(moss)
+	frame.resized.connect(func() -> void:
+		wood.queue_redraw()
+		moss.queue_redraw())
+	return [root, v]
+
+
+func _build_help() -> void:
+	var parts := _wood_board(Vector2(620, 0))
+	_help = parts[0]
+	_help.mouse_filter = Control.MOUSE_FILTER_STOP
+	var v: VBoxContainer = parts[1]
+	var title := _label("HƯỚNG DẪN CHƠI", 26, YELLOW, 8)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(title)
+	var goal := _label("Mục tiêu: dựng đứng khối trên ô đích tròn.", 16, INK, 0)
+	goal.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(goal)
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 22)
+	grid.add_theme_constant_override("v_separation", 6)
+	v.add_child(grid)
+	for row in HELP_LINES:
+		grid.add_child(_label(row[0], 16, RED, 0))
+		grid.add_child(_label(row[1], 16, INK, 0))
+	var ok := _button("ĐÃ HIỂU", hide_help, true)
+	ok.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	v.add_child(ok)
+
+
+func _build_settings() -> void:
+	var parts := _wood_board(Vector2(520, 0))
+	_settings = parts[0]
+	_settings.mouse_filter = Control.MOUSE_FILTER_STOP
+	var v: VBoxContainer = parts[1]
+	var title := _label("CÀI ĐẶT", 26, YELLOW, 8)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(title)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 12)
+	v.add_child(row)
+	row.add_child(_label("Màu ô công tắc:", 17, INK, 0))
+	for opt in [["dam", "ĐẬM"], ["nhat", "NHẠT"]]:
+		var key: String = opt[0]
+		var b := _button(opt[1], func() -> void:
+			set_marker_style(key)
+			marker_style_changed.emit(key))
+		_style_buttons[key] = b
+		row.add_child(b)
+	var note := _label("Đậm: công tắc màu đặc, dễ nhìn. Nhạt: màu phát sáng nhẹ.", 14, Color("7a5a3a"), 0)
+	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(note)
+	var ok := _button("ĐÓNG", hide_settings, true)
+	ok.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	v.add_child(ok)
+
+
+func _build_loading() -> void:
+	var parts := _wood_board(Vector2(460, 0))
+	_loading = parts[0]
+	var v: VBoxContainer = parts[1]
+	_loading_title = _label("ĐANG GIẢI", 26, YELLOW, 8)
+	_loading_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(_loading_title)
+	_loading_detail = _label("", 17, INK, 0)
+	_loading_detail.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(_loading_detail)
+	_loading_bar = ProgressBar.new()
+	_loading_bar.show_percentage = false
+	_loading_bar.custom_minimum_size = Vector2(0, 26)
+	_loading_bar.add_theme_font_override("font", _font)
+	_loading_bar.add_theme_font_size_override("font_size", 15)
+	_loading_bar.add_theme_color_override("font_color", INK)
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color("e2cfa6")
+	bg.set_corner_radius_all(6)
+	bg.set_border_width_all(2)
+	bg.border_color = Color("6b4420")
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = MOSS[0]
+	fill.set_corner_radius_all(6)
+	_loading_bar.add_theme_stylebox_override("background", bg)
+	_loading_bar.add_theme_stylebox_override("fill", fill)
+	v.add_child(_loading_bar)
+	for c in [_loading_title, _loading_detail, _loading_bar, v]:
+		c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
+>>>>>>> Stashed changes
 # ---- styling helpers (voxel look: blocky, thick outline, hard shadow) ----
 
 const INK := Color("5a1a10")          # outlines and dark text

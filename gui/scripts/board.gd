@@ -111,7 +111,7 @@ func _add_soft_switch(node: Node3D) -> void:
 	m.bottom_radius = 0.31
 	m.height = 0.06
 	s.mesh = m
-	s.material_override = MeshUtil.glow(Color("8fe8ff"), 1.4)
+	s.material_override = MeshUtil.glow(Color("dc143c"), 1.4)
 	s.position.y = 0.03
 	node.add_child(s)
 
@@ -134,7 +134,7 @@ func _add_split_switch(node: Node3D) -> void:
 		var m := BoxMesh.new()
 		m.size = Vector3(0.07, 0.06, 0.5)
 		s.mesh = m
-		s.material_override = MeshUtil.glow(Color("c080ff"), 1.6)
+		s.material_override = MeshUtil.glow(Color("10b981"), 1.6)
 		s.position = Vector3(dx, 0.03, 0)
 		node.add_child(s)
 
