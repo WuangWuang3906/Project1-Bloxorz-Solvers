@@ -85,6 +85,13 @@ func _ready() -> void:
 	ui.marker_style_changed.connect(_on_marker_style)
 	Board.marker_style = _load_setting("marker_style", "dam")
 	ui.set_marker_style(Board.marker_style)
+	ui.compass_clicked.connect(func() -> void:
+		cam_yaw = DEFAULT_YAW
+		cam_pitch = DEFAULT_PITCH
+		cam_zoom = 1.0)
+	ui.compass_visibility_changed.connect(_on_compass_visibility)
+	var show_compass := _load_setting("compass", "hien") != "an"
+	ui.set_compass_visible(show_compass)
 
 	_find_levels()
 	var args := _cmd_args()
@@ -139,12 +146,19 @@ func _on_marker_style(style: String) -> void:
 	cfg.save(SETTINGS_PATH)
 
 
+func _on_compass_visibility(show: bool) -> void:
+	var cfg := ConfigFile.new()
+	cfg.load(SETTINGS_PATH)
+	cfg.set_value("display", "compass", "hien" if show else "an")
+	cfg.save(SETTINGS_PATH)
+
+
 func _load_setting(key: String, fallback: String) -> String:
 	var cfg := ConfigFile.new()
 	if cfg.load(SETTINGS_PATH) != OK:
 		return fallback
 	var v: String = str(cfg.get_value("display", key, fallback))
-	return v if v in ["dam", "nhat"] else fallback
+	return v if not v.is_empty() else fallback
 
 
 func _has_source() -> bool:
@@ -210,6 +224,7 @@ func _process(delta: float) -> void:
 	_cur_pitch = lerpf(_cur_pitch, cam_pitch, k)
 	_cur_zoom = lerpf(_cur_zoom, cam_zoom, k)
 	_place_camera()
+	_update_compass()
 
 
 func _snap_camera() -> void:
@@ -217,6 +232,7 @@ func _snap_camera() -> void:
 	_cur_pitch = cam_pitch
 	_cur_zoom = cam_zoom
 	_place_camera()
+	_update_compass()
 
 
 func _place_camera() -> void:
@@ -235,6 +251,29 @@ func _place_camera() -> void:
 	var dir := Vector3(sin(yaw) * cos(pitch), sin(pitch), cos(yaw) * cos(pitch))
 	cam.position = center + dir * dist
 	cam.look_at(center, Vector3.UP)
+
+
+func _update_compass() -> void:
+	if cam == null or level == null or ui == null:
+		return
+	var center := Vector3((level.cols - 1) / 2.0, 0, (level.rows - 1) / 2.0)
+	var p_center := cam.unproject_position(center)
+	var p_u := cam.unproject_position(center + Vector3(0, 0, -1.0))
+	var p_r := cam.unproject_position(center + Vector3(1.0, 0, 0))
+	var p_d := cam.unproject_position(center + Vector3(0, 0, 1.0))
+	var p_l := cam.unproject_position(center + Vector3(-1.0, 0, 0))
+
+	var du := p_u - p_center
+	var dr := p_r - p_center
+	var dd := p_d - p_center
+	var dl := p_l - p_center
+
+	var dir_u := du.normalized() if du.length_squared() > 0.0001 else Vector2(0, -1)
+	var dir_r := dr.normalized() if dr.length_squared() > 0.0001 else Vector2(1, 0)
+	var dir_d := dd.normalized() if dd.length_squared() > 0.0001 else Vector2(0, 1)
+	var dir_l := dl.normalized() if dl.length_squared() > 0.0001 else Vector2(-1, 0)
+
+	ui.set_compass_directions(dir_u, dir_r, dir_d, dir_l)
 
 
 # ---- levels ------------------------------------------------------------
@@ -322,6 +361,7 @@ func _load_level(index: int) -> void:
 	else:
 		ui.set_status(NO_SOURCE_MSG)
 	_place_camera()
+	_update_compass()
 
 
 func _go_offline(reply: Dictionary) -> void:

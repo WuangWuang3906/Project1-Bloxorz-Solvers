@@ -8,6 +8,8 @@ signal restart_pressed
 signal level_selected(index: int)
 signal solve_pressed(algo: String)
 signal marker_style_changed(style: String)
+signal compass_clicked
+signal compass_visibility_changed(show: bool)
 
 const ALGOS := [["BFS", "bfs"], ["DFS", "dfs"], ["UCS", "ucs"], ["A*", "astar"]]
 const GROUP_COLORS := {
@@ -25,6 +27,9 @@ var _grid: GridContainer
 var _help: Control
 var _settings: Control
 var _style_buttons: Dictionary = {}   # "dam"/"nhat" -> Button
+var _compass_buttons: Dictionary = {} # "hien"/"an" -> Button
+var _compass_panel: PanelContainer
+var _compass_dial: CompassDial
 var _loading: Control
 var _loading_title: Label
 var _loading_detail: Label
@@ -99,6 +104,7 @@ func _ready() -> void:
 	_build_help()
 	_build_settings()
 	_build_loading()
+	_build_compass()
 
 
 func _process(delta: float) -> void:
@@ -177,6 +183,21 @@ func set_marker_style(style: String) -> void:
 		var b: Button = _style_buttons[key]
 		b.add_theme_stylebox_override("normal", _style(RED if key == style else CREAM, 4, true, 5))
 		b.add_theme_color_override("font_color", Color.WHITE if key == style else INK)
+
+
+func set_compass_visible(show: bool) -> void:
+	if _compass_panel:
+		_compass_panel.visible = show
+	for key in _compass_buttons:
+		var b: Button = _compass_buttons[key]
+		var active: bool = (str(key) == "hien" and show) or (str(key) == "an" and not show)
+		b.add_theme_stylebox_override("normal", _style(RED if active else CREAM, 4, true, 5))
+		b.add_theme_color_override("font_color", Color.WHITE if active else INK)
+
+
+func set_compass_directions(u: Vector2, r: Vector2, d: Vector2, l: Vector2) -> void:
+	if _compass_dial:
+		_compass_dial.set_directions(u, r, d, l)
 
 
 ## Waiting board while Python solves (does not block the buttons: R / RESTART
@@ -333,6 +354,100 @@ class WoodFrame extends Control:
 		draw_polyline(inner + PackedVector2Array([inner[0]]), Color("6b4420"), 2.5)
 
 
+## Rotating compass dial showing projected U, R, D, L board axes.
+class CompassDial extends Control:
+	var dir_u := Vector2(0.5, -0.866)
+	var dir_r := Vector2(0.866, 0.5)
+	var dir_d := Vector2(-0.5, 0.866)
+	var dir_l := Vector2(-0.866, -0.5)
+
+	var _lbl_u: Label
+	var _lbl_r: Label
+	var _lbl_d: Label
+	var _lbl_l: Label
+	var _font: Font
+
+	func _init(font: Font) -> void:
+		_font = font
+		custom_minimum_size = Vector2(92, 92)
+		mouse_filter = Control.MOUSE_FILTER_PASS
+		_lbl_u = _create_label("U", GameUI.RED)
+		_lbl_r = _create_label("R", GameUI.INK)
+		_lbl_d = _create_label("D", GameUI.INK)
+		_lbl_l = _create_label("L", GameUI.INK)
+		for lbl in [_lbl_u, _lbl_r, _lbl_d, _lbl_l]:
+			add_child(lbl)
+			lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func _create_label(text: String, col: Color) -> Label:
+		var l := Label.new()
+		l.text = text
+		l.add_theme_font_override("font", _font)
+		l.add_theme_font_size_override("font_size", 13)
+		l.add_theme_color_override("font_color", col)
+		l.add_theme_color_override("font_outline_color", Color.WHITE if col == GameUI.INK else GameUI.INK)
+		l.add_theme_constant_override("outline_size", 4)
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		l.custom_minimum_size = Vector2(18, 18)
+		return l
+
+	func set_directions(u: Vector2, r: Vector2, d: Vector2, l: Vector2) -> void:
+		dir_u = u
+		dir_r = r
+		dir_d = d
+		dir_l = l
+		_layout_labels()
+		queue_redraw()
+
+	func _layout_labels() -> void:
+		var c := (size if size.x > 0.0 else custom_minimum_size) / 2.0
+		var r_label := 31.0
+		for item in [[_lbl_u, dir_u], [_lbl_r, dir_r], [_lbl_d, dir_d], [_lbl_l, dir_l]]:
+			var lbl: Label = item[0]
+			var d: Vector2 = item[1]
+			if lbl:
+				var sz := lbl.size if lbl.size.x > 0.0 else lbl.custom_minimum_size
+				lbl.position = c + d * r_label - sz / 2.0
+
+	func _draw() -> void:
+		var c := (size if size.x > 0.0 else custom_minimum_size) / 2.0
+		var r_outer := 42.0
+		var r_inner := 37.0
+
+		draw_circle(c + Vector2(0, 3), r_outer, Color(GameUI.INK, 0.45))
+		draw_circle(c, r_outer, GameUI.INK)
+		draw_circle(c, r_inner, GameUI.CREAM)
+
+		for i in 8:
+			var angle := i * TAU / 8.0
+			var tick_dir := Vector2(cos(angle), sin(angle))
+			var is_major := i % 2 == 0
+			var t1 := c + tick_dir * (r_inner - (5.0 if is_major else 2.5))
+			var t2 := c + tick_dir * (r_inner - 1.0)
+			draw_line(t1, t2, GameUI.WOOD_DARK, 2.0 if is_major else 1.0)
+
+		_draw_needle(c, dir_d, 20.0, 3.0, Color("d0b894"), GameUI.INK)
+		_draw_needle(c, dir_l, 20.0, 3.0, Color("d0b894"), GameUI.INK)
+		_draw_needle(c, dir_r, 20.0, 3.0, Color("d0b894"), GameUI.INK)
+		_draw_needle(c, dir_u, 24.0, 4.5, GameUI.RED, GameUI.INK)
+
+		draw_circle(c + Vector2(0, 1), 5.5, GameUI.INK)
+		draw_circle(c, 4.5, GameUI.YELLOW)
+		draw_circle(c, 2.0, GameUI.INK)
+
+	func _draw_needle(c: Vector2, dir: Vector2, length: float, half_w: float, fill: Color, outline: Color) -> void:
+		var perp := Vector2(-dir.y, dir.x)
+		var tip := c + dir * length
+		var b1 := c + perp * half_w
+		var b2 := c - perp * half_w
+		var back := c - dir * (half_w * 0.8)
+		var pts := PackedVector2Array([tip, b1, back, b2])
+		draw_colored_polygon(pts, fill)
+		var outline_pts := PackedVector2Array([tip, b1, back, b2, tip])
+		draw_polyline(outline_pts, outline, 1.5)
+
+
 ## Moss clumps and leaf sprouts on the corners (drawn over the frame).
 class Moss extends Control:
 	func _leaf(base: Vector2, angle: float, length: float, color: Color) -> void:
@@ -447,7 +562,21 @@ func _build_settings() -> void:
 			marker_style_changed.emit(key))
 		_style_buttons[key] = b
 		row.add_child(b)
-	var note := _label("Đậm: công tắc màu đặc, dễ nhìn. Nhạt: màu phát sáng nhẹ.", 14, Color("7a5a3a"), 0)
+
+	var row_compass := HBoxContainer.new()
+	row_compass.alignment = BoxContainer.ALIGNMENT_CENTER
+	row_compass.add_theme_constant_override("separation", 12)
+	v.add_child(row_compass)
+	row_compass.add_child(_label("La bàn hướng:", 17, INK, 0))
+	for opt in [["hien", "HIỆN"], ["an", "ẨN"]]:
+		var key: String = opt[0]
+		var b := _button(opt[1], func() -> void:
+			set_compass_visible(key == "hien")
+			compass_visibility_changed.emit(key == "hien"))
+		_compass_buttons[key] = b
+		row_compass.add_child(b)
+
+	var note := _label("Đậm: công tắc màu đặc, dễ nhìn. Nhạt: màu phát sáng nhẹ.\nLa bàn: hiển thị hướng U/D/L/R xoay theo góc nhìn camera.", 14, Color("7a5a3a"), 0)
 	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(note)
 	var ok := _button("ĐÓNG", hide_settings, true)
@@ -484,6 +613,36 @@ func _build_loading() -> void:
 	v.add_child(_loading_bar)
 	for c in [_loading_title, _loading_detail, _loading_bar, v]:
 		c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
+func _build_compass() -> void:
+	_compass_panel = PanelContainer.new()
+	var cs := _style(PANEL, 6, true, 8)
+	cs.set_content_margin_all(8)
+	_compass_panel.add_theme_stylebox_override("panel", cs)
+	add_child(_compass_panel)
+	_compass_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 18)
+	_compass_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_compass_panel.tooltip_text = "Hướng bàn cờ (U/D/L/R)\nBấm để đặt lại góc nhìn (Home)"
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 2)
+	_compass_panel.add_child(vbox)
+
+	var title := _label("HƯỚNG", 13, YELLOW, 6)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	_compass_dial = CompassDial.new(_font)
+	vbox.add_child(_compass_dial)
+
+	var hint := _label("↑U  →R", 11, CREAM, 4)
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(hint)
+
+	_compass_panel.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			compass_clicked.emit())
 
 
 # ---- styling helpers (voxel look: blocky, thick outline, hard shadow) ----
