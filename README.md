@@ -1,6 +1,23 @@
 # Project 1 — Bloxorz Solvers (CSC14003, FIT-HCMUS)
 
-Game Bloxorz 3D (Godot 4) và 4 thuật toán tìm kiếm tự cài bằng Python: **BFS, DFS, UCS, A\***. Giao diện chỉ vẽ; luật chơi và thuật toán nằm ở phía Python, hai bên nói chuyện qua TCP `127.0.0.1:5555`.
+## Giới thiệu
+
+Đồ án 1 môn **Cơ sở Trí tuệ Nhân tạo (CSC14003)**, Trường ĐH Khoa học Tự nhiên – ĐHQG-HCM. Nhóm viết lại trò chơi **Bloxorz** với giao diện 3D và cài đặt 4 thuật toán tìm kiếm để máy tự giải: **BFS, DFS, UCS, A\***.
+
+- Đầy đủ cơ chế: khối 1×1×2 ba tư thế, ô dễ vỡ, cầu, công tắc soft/heavy (toggle hoặc mở/đóng cố định), công tắc tách khối và nhập khối.
+- **15 màn** do nhóm tự thiết kế, chia 5 nhóm: cơ bản, ô dễ vỡ, công tắc & cầu, tách khối, màn lớn.
+- Bấm một thuật toán, game hiện tiến độ, rồi khối tự lăn tới đích theo lời giải; có bảng số liệu (số nước, số nút mở rộng, thời gian, bộ nhớ đỉnh).
+
+| Phần | Ngôn ngữ / công cụ |
+| --- | --- |
+| Luật chơi, 4 thuật toán, server | **Python 3.10+** (chỉ thư viện chuẩn) |
+| Giao diện 3D | **Godot 4.7.2**, GDScript |
+| Giao tiếp | TCP `127.0.0.1:5555`, mỗi dòng một JSON |
+| Test, thực nghiệm | `pytest`, `matplotlib` |
+
+## Video demo
+
+Link YouTube: *(sẽ cập nhật)*
 
 ## Thành viên
 
@@ -12,14 +29,33 @@ Game Bloxorz 3D (Godot 4) và 4 thuật toán tìm kiếm tự cài bằng Pytho
 | 24120181 | Huỳnh Huy Hoàng | UCS (`bloxorz/search/ucs.py`), hàm chi phí và phần UCS trong báo cáo |
 | 24120132 | Phạm Nguyễn Quang Sáng | A\* và heuristic (`bloxorz/search/astar.py`, `heuristics.py`) và phần A\* trong báo cáo |
 
-## Yêu cầu
+## Chạy từ đầu (máy chưa có gì)
 
-- **Python 3.10+** (đã thử 3.13). Luật chơi và thuật toán chỉ dùng thư viện chuẩn; `pytest`, `matplotlib` chỉ để test và vẽ biểu đồ.
-- GUI: **Windows** dùng file `.exe` (Cách 1), hoặc **mọi hệ điều hành** (Windows, macOS, Linux) dùng Godot 4.7.2 (Cách 2).
+**Bước 1. Cài đặt:** [Python 3.10+](https://www.python.org/downloads/) (Windows: tick *Add python.exe to PATH*) và [Git](https://git-scm.com/downloads).
+
+**Bước 2. Tải mã nguồn:**
+
+```bash
+git clone https://github.com/WuangWuang3906/Project1-Bloxorz-Solvers.git
+cd Project1-Bloxorz-Solvers
+```
+
+**Bước 3. Môi trường ảo và thư viện** (chỉ cần cho test và biểu đồ; game và thuật toán chạy được không cần bước này):
+
+```bash
+python -m venv .venv
+```
+
+- Windows: `.venv\Scripts\activate`
+- macOS / Linux: `source .venv/bin/activate` (dùng `python3` thay `python` nếu máy không có lệnh `python`)
 
 ```bash
 pip install -r requirements.txt
 ```
+
+**Bước 4. Kiểm tra:** `pytest -q -m "not slow"` phải báo toàn bộ *passed*.
+
+**Bước 5. Mở giao diện:** Windows dùng **Cách 1** (`.exe`); macOS, Linux (hoặc Windows bị chặn `.exe`) dùng **Cách 2** (Godot).
 
 ## Cách 1 — Windows: chạy file `.exe`
 
