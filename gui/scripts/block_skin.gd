@@ -142,7 +142,7 @@ static func dress_block(body: MeshInstance3D) -> void:
 	for n in [Vector3.BACK, Vector3.FORWARD, Vector3.LEFT, Vector3.RIGHT]:
 		_decal(body, CAP_SIDE, Vector2(1.04, 0.42), Vector3(0, 0.79, 0) + n * 0.52, n)
 	# base: white slab at the bottom
-	_box(body, Vector3(1.04, 0.16, 1.04), Vector3(0, -0.9, 0), BASE)
+	_box(body, Vector3(1.04, 0.17, 1.04), Vector3(0, -0.905, 0), BASE)   # bottom just below the body: no z-fighting
 	# face and side marks between cap and base
 	_decal(body, FACE, Vector2(0.96, 1.28), Vector3(0, -0.06, 0.48), Vector3.BACK)
 	_decal(body, SIDE, Vector2(0.96, 1.28), Vector3(-0.48, -0.06, 0), Vector3.LEFT)
@@ -154,5 +154,5 @@ static func dress_cube(cube: MeshInstance3D) -> void:
 	cube.material_override = MeshUtil.mat(BODY, 0.6)
 	_box(cube, Vector3(1.04, 0.26, 1.04), Vector3(0, 0.37, 0), CAP)
 	_decal(cube, CAP_TOP, Vector2(1.04, 1.04), Vector3(0, 0.5, 0), Vector3.UP)
-	_box(cube, Vector3(1.04, 0.1, 1.04), Vector3(0, -0.43, 0), BASE)
+	_box(cube, Vector3(1.04, 0.11, 1.04), Vector3(0, -0.435, 0), BASE)
 	_decal(cube, CUBE_FACE, Vector2(0.96, 0.64), Vector3(0, -0.04, 0.48), Vector3.BACK)

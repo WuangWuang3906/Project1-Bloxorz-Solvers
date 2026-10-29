@@ -19,8 +19,8 @@ var bridge_nodes: Dictionary = {}   # bridge id -> Array[Node3D]
 var _markers: Array = []            # [MeshInstance3D, kind] of every switch marker
 
 var _tile_mesh: ArrayMesh = MeshUtil.rounded_box(Vector3(0.96, TILE_H, 0.96), 0.07)
-var _floor_a := MeshUtil.mat(Color("c4beba"), 0.45)
-var _floor_b := MeshUtil.mat(Color("b3adab"), 0.45)
+var _floor_a := Foliage.stone_material(Color(1.0, 0.98, 0.94))    # old mottled stone
+var _floor_b := Foliage.stone_material(Color(0.93, 0.91, 0.86))
 var _fragile := MeshUtil.mat(Color("ff7a1a"), 0.22)
 var _bridge := MeshUtil.mat(Color("6d7488"), 0.28, 0.9)
 var _hole := MeshUtil.mat(Color("050208"), 1.0)

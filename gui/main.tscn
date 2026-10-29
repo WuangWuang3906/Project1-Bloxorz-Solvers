@@ -1,28 +1,6 @@
 [gd_scene format=3 uid="uid://cq7yuhk2apuue"]
 
 [ext_resource type="Script" uid="uid://5kahnrduwlfc" path="res://scripts/main.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://bnig7ief8t6u0" path="res://Forest(2).jpg" id="2_0xm2m"]
-
-[sub_resource type="Environment" id="Environment_0fv7b"]
-background_mode = 3
-background_canvas_max_layer = -1
 
 [node name="Main" type="Node3D" unique_id=1247901745]
 script = ExtResource("1")
-
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1033161565]
-environment = SubResource("Environment_0fv7b")
-
-[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1159331582]
-layer = -1
-
-[node name="TextureRect" type="TextureRect" parent="CanvasLayer" unique_id=888279281]
-texture_filter = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("2_0xm2m")
-expand_mode = 1
-stretch_mode = 6

@@ -38,7 +38,7 @@ var _loading_t: float = 0.0
 var _loading_frac: float = -1.0   # <0: unknown total, bar sweeps back and forth
 
 const HELP_LINES := [
-	["Mũi tên ↑ ↓ ← →", "Lăn khối"],
+	["Mũi tên ↑ ↓ ← →", "Lăn khối theo màn hình (↑ = đi vào trong, tam giác đỏ)"],
 	["Tab / Space", "Đổi khối điều khiển (khi đã tách)"],
 	["R", "Chơi lại màn (huỷ luôn việc đang giải)"],
 	["Kéo chuột · Cuộn chuột", "Xoay góc nhìn · phóng to/thu nhỏ"],
@@ -369,13 +369,14 @@ class CompassDial extends Control:
 
 	func _init(font: Font) -> void:
 		_font = font
-		custom_minimum_size = Vector2(92, 92)
+		custom_minimum_size = Vector2(66, 66)
 		mouse_filter = Control.MOUSE_FILTER_PASS
-		_lbl_u = _create_label("U", GameUI.RED)
-		_lbl_r = _create_label("R", GameUI.INK)
-		_lbl_d = _create_label("D", GameUI.INK)
-		_lbl_l = _create_label("L", GameUI.INK)
+		_lbl_u = _create_label("↑", GameUI.RED)
+		_lbl_r = _create_label("→", GameUI.INK)
+		_lbl_d = _create_label("↓", GameUI.INK)
+		_lbl_l = _create_label("←", GameUI.INK)
 		for lbl in [_lbl_u, _lbl_r, _lbl_d, _lbl_l]:
+			lbl.visible = false   # compact dial: the red needle alone shows the ↑ key
 			add_child(lbl)
 			lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
@@ -383,13 +384,13 @@ class CompassDial extends Control:
 		var l := Label.new()
 		l.text = text
 		l.add_theme_font_override("font", _font)
-		l.add_theme_font_size_override("font_size", 13)
+		l.add_theme_font_size_override("font_size", 12)
 		l.add_theme_color_override("font_color", col)
 		l.add_theme_color_override("font_outline_color", Color.WHITE if col == GameUI.INK else GameUI.INK)
 		l.add_theme_constant_override("outline_size", 4)
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		l.custom_minimum_size = Vector2(18, 18)
+		l.custom_minimum_size = Vector2(16, 16)
 		return l
 
 	func set_directions(u: Vector2, r: Vector2, d: Vector2, l: Vector2) -> void:
@@ -402,7 +403,7 @@ class CompassDial extends Control:
 
 	func _layout_labels() -> void:
 		var c := (size if size.x > 0.0 else custom_minimum_size) / 2.0
-		var r_label := 31.0
+		var r_label := 21.0
 		for item in [[_lbl_u, dir_u], [_lbl_r, dir_r], [_lbl_d, dir_d], [_lbl_l, dir_l]]:
 			var lbl: Label = item[0]
 			var d: Vector2 = item[1]
@@ -412,8 +413,8 @@ class CompassDial extends Control:
 
 	func _draw() -> void:
 		var c := (size if size.x > 0.0 else custom_minimum_size) / 2.0
-		var r_outer := 42.0
-		var r_inner := 37.0
+		var r_outer := 31.0
+		var r_inner := 27.0
 
 		draw_circle(c + Vector2(0, 3), r_outer, Color(GameUI.INK, 0.45))
 		draw_circle(c, r_outer, GameUI.INK)
@@ -427,10 +428,7 @@ class CompassDial extends Control:
 			var t2 := c + tick_dir * (r_inner - 1.0)
 			draw_line(t1, t2, GameUI.WOOD_DARK, 2.0 if is_major else 1.0)
 
-		_draw_needle(c, dir_d, 20.0, 3.0, Color("d0b894"), GameUI.INK)
-		_draw_needle(c, dir_l, 20.0, 3.0, Color("d0b894"), GameUI.INK)
-		_draw_needle(c, dir_r, 20.0, 3.0, Color("d0b894"), GameUI.INK)
-		_draw_needle(c, dir_u, 24.0, 4.5, GameUI.RED, GameUI.INK)
+		_draw_needle(c, dir_u, 13.0, 3.5, GameUI.RED, GameUI.INK)
 
 		draw_circle(c + Vector2(0, 1), 5.5, GameUI.INK)
 		draw_circle(c, 4.5, GameUI.YELLOW)
@@ -576,7 +574,7 @@ func _build_settings() -> void:
 		_compass_buttons[key] = b
 		row_compass.add_child(b)
 
-	var note := _label("Đậm: công tắc màu đặc, dễ nhìn. Nhạt: màu phát sáng nhẹ.\nLa bàn: hiển thị hướng U/D/L/R xoay theo góc nhìn camera.", 14, Color("7a5a3a"), 0)
+	var note := _label("Đậm: công tắc màu đặc, dễ nhìn. Nhạt: màu phát sáng nhẹ.\nLa bàn: chữ là phím mũi tên theo góc nhìn camera.", 14, Color("7a5a3a"), 0)
 	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(note)
 	var ok := _button("ĐÓNG", hide_settings, true)
@@ -618,27 +616,20 @@ func _build_loading() -> void:
 func _build_compass() -> void:
 	_compass_panel = PanelContainer.new()
 	var cs := _style(PANEL, 6, true, 8)
-	cs.set_content_margin_all(8)
+	cs.set_content_margin_all(5)
 	_compass_panel.add_theme_stylebox_override("panel", cs)
 	add_child(_compass_panel)
-	_compass_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 18)
-	_compass_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	# compact: small dial on the right edge, off the board
+	_compass_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_RIGHT, Control.PRESET_MODE_MINSIZE, 18)
+	_compass_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_compass_panel.tooltip_text = "Hướng bàn cờ (U/D/L/R)\nBấm để đặt lại góc nhìn (Home)"
 
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 2)
 	_compass_panel.add_child(vbox)
 
-	var title := _label("HƯỚNG", 13, YELLOW, 6)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(title)
-
 	_compass_dial = CompassDial.new(_font)
 	vbox.add_child(_compass_dial)
-
-	var hint := _label("↑U  →R", 11, CREAM, 4)
-	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(hint)
 
 	_compass_panel.gui_input.connect(func(event: InputEvent) -> void:
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:

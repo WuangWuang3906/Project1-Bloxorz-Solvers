@@ -64,6 +64,8 @@ var block: Block
 var ui: GameUI
 var net: NetClient
 var cam: Camera3D
+var hints: KeyHints
+var scenery: Scenery
 
 
 func _ready() -> void:
@@ -74,6 +76,8 @@ func _ready() -> void:
 	add_child(board)
 	block = Block.new()
 	add_child(block)
+	hints = KeyHints.new()
+	add_child(hints)
 	ui = GameUI.new()
 	add_child(ui)
 	net = NetClient.new()
@@ -90,7 +94,7 @@ func _ready() -> void:
 		cam_pitch = DEFAULT_PITCH
 		cam_zoom = 1.0)
 	ui.compass_visibility_changed.connect(_on_compass_visibility)
-	var show_compass := _load_setting("compass", "hien") != "an"
+	var show_compass := _load_setting("compass", "an") != "an"
 	ui.set_compass_visible(show_compass)
 
 	_find_levels()
@@ -173,34 +177,47 @@ func _exit_tree() -> void:
 # ---- world & camera ----------------------------------------------------
 
 func _setup_world() -> void:
+	# deep-jungle mood: green-gold sky, warm low sun, mist between the canopies
 	var sky_mat := ProceduralSkyMaterial.new()
-	sky_mat.sky_top_color = Color("2a1a52")
-	sky_mat.sky_horizon_color = Color("d0708a")
-	sky_mat.ground_horizon_color = Color("c8658a")
-	sky_mat.ground_bottom_color = Color("6a3070")
-	sky_mat.sun_angle_max = 20.0
+	sky_mat.sky_top_color = Color("6fa8a0")
+	sky_mat.sky_horizon_color = Color("f1e3a8")
+	sky_mat.ground_horizon_color = Color("9cc48a")
+	sky_mat.ground_bottom_color = Color("1d3a22")
+	sky_mat.sun_angle_max = 25.0
 	var sky := Sky.new()
 	sky.sky_material = sky_mat
 
 	var env := Environment.new()
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_energy = 0.45
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = Color("c9dcb5")
+	env.ambient_light_energy = 0.5
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
-	env.tonemap_exposure = 0.9
+	env.tonemap_exposure = 0.8
 	env.glow_enabled = true
-	env.glow_intensity = 0.5
-	env.glow_hdr_threshold = 1.0
+	env.glow_intensity = 0.25
+	env.glow_bloom = 0.0
+	env.glow_hdr_threshold = 0.9
 	env.ssao_enabled = true
-	env.ssao_intensity = 1.5
+	env.ssao_intensity = 1.6
+	env.adjustment_enabled = true
+	env.adjustment_saturation = 1.2
+	env.adjustment_contrast = 1.08
+	env.fog_enabled = true                       # mist pooling below the board
+	env.fog_light_color = Color("b9cfb2")   # pale mist in the valley
+	env.fog_density = 0.0012
+	env.fog_height = -16.0
+	env.fog_height_density = 0.03
+	env.fog_sky_affect = 0.3
+	env.fog_aerial_perspective = 0.15
 	var we := WorldEnvironment.new()
 	we.environment = env
 	add_child(we)
 
 	var sun := DirectionalLight3D.new()
-	sun.light_color = Color("ffd2a8")
-	sun.light_energy = 1.4
+	sun.light_color = Color("ffe0a8")
+	sun.light_energy = 1.6
 	sun.shadow_enabled = true
 	sun.shadow_blur = 1.5
 	sun.directional_shadow_max_distance = 60.0
@@ -217,6 +234,9 @@ func _setup_world() -> void:
 	cam.fov = CAM_FOV
 	add_child(cam)
 
+	scenery = Scenery.new()
+	add_child(scenery)
+
 
 func _process(delta: float) -> void:
 	var k := 1.0 - exp(-delta * 12.0)
@@ -225,6 +245,40 @@ func _process(delta: float) -> void:
 	_cur_zoom = lerpf(_cur_zoom, cam_zoom, k)
 	_place_camera()
 	_update_compass()
+	_update_hints()
+
+
+## Arrow-key hints around the block, only while the player can act.
+func _update_hints() -> void:
+	if hints == null:
+		return
+	var idle := level != null and not busy and not replaying and not solving
+	idle = idle and not ui.is_level_select_open() and not state.is_empty()
+	idle = idle and not OfflineRules.is_goal(level, state)
+	hints.up_action = _screen_action(0)
+	hints.show_for(state if idle else null)
+
+
+## Arrow keys follow the screen, not the board: ↑ always rolls the block
+## "into" the screen, whatever way the camera is turned. key: 0 = ↑, 1 = →,
+## 2 = ↓, 3 = ←. The board move whose on-screen direction is closest to
+## "up" goes to ↑; the others follow clockwise (U, R, D, L).
+func _screen_action(key: int) -> String:
+	const ORDER := ["U", "R", "D", "L"]
+	if cam == null or level == null:
+		return ORDER[key]
+	var center := Vector3((level.cols - 1) / 2.0, 0, (level.rows - 1) / 2.0)
+	var c2 := cam.unproject_position(center)
+	var best := 0
+	var best_dot := -INF
+	for i in 4:
+		var d: Vector2 = OfflineRules.DIRS[ORDER[i]]
+		var p := cam.unproject_position(center + Vector3(d.y, 0, d.x)) - c2
+		var dot := p.normalized().dot(Vector2(0, -1))
+		if dot > best_dot:
+			best_dot = dot
+			best = i
+	return ORDER[(best + key) % 4]
 
 
 func _snap_camera() -> void:
@@ -340,6 +394,7 @@ func _load_level(index: int) -> void:
 	level_index = clampi(index, 0, level_files.size() - 1)
 	level = LevelData.load_file(level_files[level_index])
 	board.build(level)
+	scenery.build(Vector3((level.cols - 1) / 2.0, 0, (level.rows - 1) / 2.0), maxf(level.cols, level.rows) / 2.0, level)
 	state = OfflineRules.initial_state(level)
 	if online:
 		# Send the level itself, not a file name: a server started from another
@@ -416,13 +471,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	match event.keycode:
 		KEY_UP:
-			_try_move("U")
-		KEY_DOWN:
-			_try_move("D")
-		KEY_LEFT:
-			_try_move("L")
+			_try_move(_screen_action(0))
 		KEY_RIGHT:
-			_try_move("R")
+			_try_move(_screen_action(1))
+		KEY_DOWN:
+			_try_move(_screen_action(2))
+		KEY_LEFT:
+			_try_move(_screen_action(3))
 		KEY_TAB, KEY_SPACE:
 			_try_move("SWITCH")
 		KEY_PAGEUP:
