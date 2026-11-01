@@ -78,6 +78,7 @@ File `.exe` chỉ chạy trên Windows; **macOS và Linux** chạy GUI từ mã 
    ```bash
    python -m bloxorz.server
    ```
+   Hoặc `python main.py` (cùng việc). `main.py` nhận thêm mọi lệnh ở bảng "Không cần GUI", ví dụ `python main.py solve levels/level01.json --algo astar`.
    macOS/Linux dùng `python3` nếu máy không có lệnh `python`.
 3. Mở game:
    - **Cách dễ:** mở Godot → *Import* → chọn `gui/project.godot` → bấm **Run** (F5).
