@@ -17,7 +17,7 @@
 
 ## Video demo
 
-Link YouTube: *(sẽ cập nhật)*
+Link YouTube: https://youtu.be/PRtVNUqQWWY
 
 ## Thành viên
 
