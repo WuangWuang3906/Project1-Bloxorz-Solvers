@@ -49,7 +49,6 @@ def dfs(level: Level, start: State) -> SearchResult:
             if next_state in visited:
                 continue
             # Ghi đè cha để đường tới next_state luôn là đường đang được duyệt gần nhất; cost_to phải cập nhật cùng lúc để khớp với parent.
-            # cost_to cũng phải cập nhật cộng dồn cùng lúc để khớp với parent.
             parent[next_state] = (current, action)
             cost_to[next_state] = cost_to[current] + step_cost
             stack.append(next_state)
